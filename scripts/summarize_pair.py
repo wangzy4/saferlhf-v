@@ -66,6 +66,14 @@ def main():
     parser.add_argument('--expected', type=int)
     args = parser.parse_args()
     by_model = {}
+    settings = set()
+    for path in args.run_dir.glob('*.metadata.json'):
+        metadata = json.loads(path.read_text())
+        shared = {key: metadata[key] for key in ['assets', 'decoding', 'processor', 'torch', 'transformers']}
+        shared['args'] = {key: value for key, value in metadata['args'].items() if key not in {'model', 'shard'}}
+        settings.add(json.dumps(shared, sort_keys=True))
+    if len(settings) != 1:
+        raise RuntimeError('Missing metadata or unmatched generation/scoring settings')
     for model in ['base', 'safe']:
         records = {}
         for path in sorted(args.run_dir.glob(f'{model}-*.jsonl')):
@@ -78,8 +86,10 @@ def main():
     common = sorted(set(by_model['base']) & set(by_model['safe']))
     if not common:
         raise RuntimeError('No paired records')
-    if args.expected is not None and any(len(v) != args.expected for v in by_model.values()):
-        raise RuntimeError(f'Incomplete run: expected {args.expected}, got {[len(v) for v in by_model.values()]}')
+    if args.expected is not None and (len(common) != args.expected or
+                                     any(len(v) != args.expected for v in by_model.values())):
+        raise RuntimeError(f'Incomplete/unpaired run: expected {args.expected}, '
+                           f'got {[len(v) for v in by_model.values()]}, paired={len(common)}')
     for sample in common:
         a, b = (by_model[m][sample] for m in ['base', 'safe'])
         for field in ['question', 'image_sha256', 'helpful_id', 'safer_id']:
