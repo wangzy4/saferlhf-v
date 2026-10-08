@@ -128,7 +128,7 @@ def main():
     output = run_dir / f'{args.model}-{args.shard}.jsonl'
     metadata_file = run_dir / f'{args.model}-{args.shard}.metadata.json'
     model_path = root / ('models/base' if args.model == 'base' else 'models/safe/LLaVA_Safe_RLHF-V')
-    processor = AutoProcessor.from_pretrained(root / 'models/base', local_files_only=True)
+    processor = AutoProcessor.from_pretrained(root / 'models/base', local_files_only=True, use_fast=False)
     # CLIP has a CLS token, removed by LLaVA's default vision feature selection.
     processor.patch_size = 14
     processor.num_additional_image_tokens = 1
@@ -148,7 +148,7 @@ def main():
     metadata = {'args': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
                 'assets': json.loads((root / 'assets.json').read_text()),
                 'torch': torch.__version__, 'transformers': __import__('transformers').__version__,
-                'gpu': torch.cuda.get_device_name(0), 'processor': {'source': 'base', 'patch_size': 14,
+                'gpu': torch.cuda.get_device_name(0), 'processor': {'source': 'base', 'use_fast': False, 'patch_size': 14,
                 'num_additional_image_tokens': 1, 'vision_feature_select_strategy': 'default'},
                 'decoding': {'do_sample': False, 'repetition_penalty': 1.0,
                              'max_new_tokens': args.max_new_tokens, 'seed': 42},
