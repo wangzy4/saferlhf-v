@@ -141,6 +141,8 @@ def main():
         model_path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True,
         attn_implementation='sdpa', local_files_only=True, output_loading_info=True,
         use_safetensors=args.model == 'base', weights_only=True)
+    loading_info = {key: sorted(value) if isinstance(value, set) else value
+                    for key, value in loading_info.items()}
     if any(loading_info.get(k) for k in ['missing_keys', 'unexpected_keys', 'mismatched_keys', 'error_msgs']):
         raise RuntimeError(f'Checkpoint did not load exactly: {loading_info}')
     model = model.to('cuda').eval()
