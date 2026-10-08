@@ -18,6 +18,7 @@ from typing import Any
 from safe_rlhf_v.datasets.text_image_to_text import PromptOnlyBatch, PromptOnlyDataset, SupervisedDataset
 from safe_rlhf_v.models.pretrained_model import load_pretrained_models
 from safe_rlhf_v.trainers.text_to_text.ppo import PPOTrainer as PPOTextTrainer
+from safe_rlhf_v.utils.masking import last_valid_indices, response_mask_from_lengths
 from safe_rlhf_v.utils.multi_process import (
     get_all_reduce_max,
     get_all_reduce_mean,
@@ -225,39 +226,32 @@ class SafeRLHFVTrainer(PPOTextTrainer):
             is_reward_model=True,
             processor_kwargs=self.cfgs.train_cfgs.processor_kwargs,
         )
-        # loading cost critic model
-        self.cost_critic_model, self.cost_critic_tokenizer, _ = (
-            load_pretrained_models(
-                self.cfgs.model_cfgs.cost_model_name_or_path,
-                model_max_length=self.cfgs.model_cfgs.model_max_length,
-                padding_side='left',
-                trust_remote_code=self.cfgs.model_cfgs.trust_remote_code,
-                is_reward_model=True,
-                processor_kwargs=self.cfgs.train_cfgs.processor_kwargs,
-            )
+        # Use the explicit critic checkpoint when supplied, otherwise initialize from CM.
+        cost_critic_path = (self.cfgs.model_cfgs.cost_critic_model_name_or_path
+                            or self.cfgs.model_cfgs.cost_model_name_or_path)
+        self.cost_critic_model, self.cost_critic_tokenizer, _ = load_pretrained_models(
+            cost_critic_path,
+            model_max_length=self.cfgs.model_cfgs.model_max_length,
+            padding_side='left',
+            trust_remote_code=self.cfgs.model_cfgs.trust_remote_code,
+            is_reward_model=True,
+            freeze_mm_proj=self.cfgs.train_cfgs.freeze_mm_proj,
+            freeze_vision_tower=self.cfgs.train_cfgs.freeze_vision_tower,
+            freeze_language_model=self.cfgs.train_cfgs.freeze_language_model,
+            processor_kwargs=self.cfgs.train_cfgs.processor_kwargs,
         )
 
-        # initial checking
-        if is_same_tokenizer(self.tokenizer, self.cost_tokenizer):
+        if is_same_tokenizer(self.tokenizer, self.reward_tokenizer):
             self.reward_tokenizer = self.tokenizer
-        if not is_same_tokenizer(self.tokenizer, self.reward_critic_tokenizer):
-            raise ValueError(
-                (
-                    'Reward critic tokenizer must be the same as actor tokenizer. '
-                    'Expected {0.__module__}.{0.__qualname__}(vocab_size={1}), '
-                    'but got {2.__module__}.{2.__qualname__}(vocab_size={3}). '
-                    'Please consider pass `--reward_critic_model_name_or_path` from the command line.'
-                ).format(
-                    type(self.tokenizer),
-                    len(self.tokenizer),
-                    type(self.reward_critic_tokenizer),
-                    len(self.reward_critic_tokenizer),
-                ),
-            )
+        if is_same_tokenizer(self.tokenizer, self.cost_tokenizer):
+            self.cost_tokenizer = self.tokenizer
+        for name in ('reward', 'cost'):
+            if not is_same_tokenizer(self.tokenizer, getattr(self, f'{name}_critic_tokenizer')):
+                raise ValueError(f'{name.title()} critic tokenizer must match actor tokenizer; '
+                                 f'check --{name}_critic_model_name_or_path')
 
-        # training setup
+        # Tokenwise critics must share actor token positions; scalar RM/CM may retokenize.
         self.reward_critic_tokenizer = self.tokenizer
-        self.cost_tokenizer = self.tokenizer
         self.cost_critic_tokenizer = self.tokenizer
         self.generation_config = GenerationConfig(
             max_new_tokens=self.cfgs.model_cfgs.max_new_tokens,
@@ -355,25 +349,12 @@ class SafeRLHFVTrainer(PPOTextTrainer):
             reward_value = reward_batch['reward_values'][idx][-response_length:].unsqueeze(0)
             cost_value = cost_batch['cost_values'][idx][-response_length:].unsqueeze(0)
 
-            logprob = gather_log_probabilities(logit, input_id).squeeze()
-            if logprob.dim() == 0:
-                logprob = torch.cat([logprob.unsqueeze(0), logprob.new_zeros(2)])
+            logprob = gather_log_probabilities(logit, input_id).reshape(-1)
             logprob_list.append(logprob)
-            
-            ref_logprob = gather_log_probabilities(ref_logit, input_id).squeeze()
-            if ref_logprob.dim() == 0:
-                ref_logprob = torch.cat([ref_logprob.unsqueeze(0), ref_logprob.new_zeros(2)])
+            ref_logprob = gather_log_probabilities(ref_logit, input_id).reshape(-1)
             ref_logprob_list.append(ref_logprob)
-            
-            reward_value = reward_value.squeeze()
-            if reward_value.dim() == 0:
-                reward_value = torch.cat([reward_value.unsqueeze(0), reward_value.new_zeros(2)])
-            reward_value_list.append(reward_value)
-            
-            cost_value = cost_value.squeeze()
-            if cost_value.dim() == 0:
-                cost_value = torch.cat([cost_value.unsqueeze(0), cost_value.new_zeros(2)])
-            cost_value_list.append(cost_value)
+            reward_value_list.append(reward_value.reshape(-1))
+            cost_value_list.append(cost_value.reshape(-1))
 
         log_probs = torch.nn.utils.rnn.pad_sequence(
             logprob_list, batch_first=True, padding_value=0.0
@@ -387,7 +368,7 @@ class SafeRLHFVTrainer(PPOTextTrainer):
         cost_values = torch.nn.utils.rnn.pad_sequence(
             cost_value_list, batch_first=True, padding_value=0.0
         ).to(logits.device)
-        response_mask = (log_probs != 0).bool().to(logits.device)
+        response_mask = response_mask_from_lengths(response_lens, log_probs.shape[1], logits.device)
 
         micro_training_batch = {}
         micro_training_batch['response_lens'] = response_lens
@@ -399,7 +380,7 @@ class SafeRLHFVTrainer(PPOTextTrainer):
         micro_training_batch['cost_values'] = cost_values
         micro_training_batch['response_mask'] = response_mask
 
-        mini_batch['input_ids'] = reward_batch['input_ids']
+        mini_batch['input_ids'] = actor_batch['input_ids']
         mini_batch['attention_mask'] = actor_batch['attention_mask']
         # add rollout results to the batches
         micro_inference_batches.append(mini_batch)
@@ -439,10 +420,11 @@ class SafeRLHFVTrainer(PPOTextTrainer):
         ref_log_probs: torch.Tensor,  # size = (B, L)
         sequence_mask: torch.BoolTensor,  # size = (B, L)
     ) -> tuple[torch.Tensor, torch.Tensor]:  # size = (B, L)
-        end_index = torch.cat([m.nonzero()[-1] for m in sequence_mask])  # size = (B,)
-    
-        # size = (B, L)
-        kl_divergence_estimate = log_probs - ref_log_probs
+        end_index = last_valid_indices(sequence_mask)
+        if log_probs.shape != sequence_mask.shape or ref_log_probs.shape != sequence_mask.shape:
+            raise ValueError('Log probabilities and response mask must have identical shapes')
+
+        kl_divergence_estimate = (log_probs - ref_log_probs).masked_fill(~sequence_mask.bool(), 0)
         kl_penalty_rewards = -self.kl_coeff * kl_divergence_estimate
         rewards = torch.scatter_add(
             kl_penalty_rewards,
@@ -491,14 +473,14 @@ class SafeRLHFVTrainer(PPOTextTrainer):
 
         input_ids = inference_batch['input_ids']
 
-        sequence_mask = torch.ones_like(response_mask, dtype=torch.bool)
+        sequence_mask = response_mask.bool()
         batch_size = sequence_mask.size(0)
-        new_size = min(sequence_mask.size(-1), old_reward_values.size(-1), old_cost_values.size(-1))
-
-        sequence_mask = sequence_mask[:, :new_size]
-
-        old_reward_values = old_reward_values[:, :new_size]
-        old_cost_values = old_cost_values[:, :new_size]
+        expected_mask = response_mask_from_lengths(response_lens, sequence_mask.shape[1], sequence_mask.device)
+        if not torch.equal(sequence_mask, expected_mask):
+            raise ValueError('Response mask must match actual response lengths')
+        if any(t.shape != sequence_mask.shape for t in
+               (old_log_probs, ref_log_probs, old_reward_values, old_cost_values)):
+            raise ValueError('Rollout log probabilities, values and response mask must align')
         with torch.no_grad():
             old_rewards, old_costs = self.add_kl_divergence_regularization_with_cost(
                 reward,
@@ -528,9 +510,7 @@ class SafeRLHFVTrainer(PPOTextTrainer):
             input_id = input_ids[idx, 1:][-response_length:].unsqueeze(0)
             logit = logits[idx, :-1][-response_length:].unsqueeze(0)
             
-            logprob = gather_log_probabilities(logit, input_id).squeeze()
-            if logprob.dim() == 0:
-                logprob = torch.cat([logprob.unsqueeze(0), logprob.new_zeros(2)])
+            logprob = gather_log_probabilities(logit, input_id).reshape(-1)
             logprob_list.append(logprob)
         
         log_probs = torch.nn.utils.rnn.pad_sequence(logprob_list, batch_first=True, padding_value=0.).to(logits.device)
@@ -555,10 +535,7 @@ class SafeRLHFVTrainer(PPOTextTrainer):
         for idx in range(batch_size):
             response_length = response_lens[idx]
             reward_value = raw_reward_values[idx][-response_length:].unsqueeze(0)
-            reward_value = reward_value.squeeze()
-            if reward_value.dim() == 0:
-                reward_value = torch.cat([reward_value.unsqueeze(0), reward_value.new_zeros(2)])
-            reward_value_list.append(reward_value)
+            reward_value_list.append(reward_value.reshape(-1))
         reward_values = torch.nn.utils.rnn.pad_sequence(reward_value_list, batch_first=True, padding_value=0.).to(logits.device)
         
         reward_critic_loss = self.critic_loss_fn(
@@ -574,10 +551,7 @@ class SafeRLHFVTrainer(PPOTextTrainer):
         for idx in range(batch_size):
             response_length = response_lens[idx]
             cost_value = raw_cost_values[idx][-response_length:].unsqueeze(0)
-            cost_value = cost_value.squeeze()
-            if cost_value.dim() == 0:
-                cost_value = torch.cat([cost_value.unsqueeze(0), cost_value.new_zeros(2)])
-            cost_value_list.append(cost_value)
+            cost_value_list.append(cost_value.reshape(-1))
         cost_values = torch.nn.utils.rnn.pad_sequence(cost_value_list, batch_first=True, padding_value=0.).to(logits.device)
         
         cost_critic_loss = self.critic_loss_fn(

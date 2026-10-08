@@ -5,6 +5,7 @@ from transformers import AutoConfig, LlavaPreTrainedModel
 from transformers.models.llava.modeling_llava import LlavaForConditionalGeneration
 
 from safe_rlhf_v.models.reward_model import ScoreModelOutput
+from safe_rlhf_v.utils.masking import last_valid_indices
 
 
 class AccustomedLlavaModel(LlavaForConditionalGeneration):
@@ -42,11 +43,16 @@ class AccustomedLlavaRewardModel(LlavaPreTrainedModel):
         scores = self.score_head(last_hidden_state).float()
         B, _, _ = scores.size()
 
-        end_index = -torch.ones((B,))  # size = (B,)
-        end_last_hidden_state = last_hidden_state[:, -1, :].unsqueeze(1)
-        end_scores = self.score_head(end_last_hidden_state).float()
-        end_last_hidden_state = end_last_hidden_state.squeeze(dim=1)  # size = (B, E)
-        end_scores = end_scores.squeeze(dim=1)  # size = (B, D)
+        if attention_mask is None:
+            attention_mask = torch.ones(last_hidden_state.shape[:2], device=last_hidden_state.device,
+                                        dtype=torch.bool)
+        if attention_mask.shape != last_hidden_state.shape[:2]:
+            raise ValueError('Attention mask must match hidden states; expand LLaVA image tokens '
+                             'in the processor before scoring')
+        end_index = last_valid_indices(attention_mask.to(last_hidden_state.device))
+        rows = torch.arange(B, device=last_hidden_state.device)
+        end_last_hidden_state = last_hidden_state[rows, end_index]
+        end_scores = scores[rows, end_index]
 
         return ScoreModelOutput(
             scores=scores,  # size = (B, L, D)

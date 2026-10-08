@@ -24,6 +24,7 @@ except ImportError:
 
 from safe_rlhf_v.models.model_registry import AnyModel, AnyModelForScore
 from safe_rlhf_v.utils.multi_process import is_main_process
+from safe_rlhf_v.utils.processors import configure_llava_processor
 from safe_rlhf_v.utils.tools import namedtuple_to_dict
 
 
@@ -272,7 +273,9 @@ def load_pretrained_models(  # pylint: disable=too-many-arguments
         processor = None
 
     if processor and hasattr(processor, 'tokenizer'):
+        configure_llava_processor(processor, model.config)
         processor.tokenizer.padding_side = padding_side
+        processor.tokenizer.model_max_length = model_max_length
         resize_tokenizer_embedding(tokenizer=processor.tokenizer, model=model)
         if hasattr(model, 'chat_template'):
             processor.chat_template = model.chat_template

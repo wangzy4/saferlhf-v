@@ -2,7 +2,7 @@
 
 ## 状态与来源
 
-本仓库 fork 自 https://github.com/saferlhf-v/saferlhf-v ，基线提交 `337d200192e6d0a3c3d61c389f38f964bd2288e3`。bootstrap 分支只增加复现文档和审计工具。后续 `reproduction/fix-and-inference` 分支已修复训练入口参数处理，并添加独立推理工具；没有修改 Safe RLHF-V 算法。环境与推理进度见 [INFERENCE_ZH.md](INFERENCE_ZH.md)。
+本仓库 fork 自 https://github.com/saferlhf-v/saferlhf-v ，基线提交 `337d200192e6d0a3c3d61c389f38f964bd2288e3`。bootstrap 分支只增加复现文档和审计工具。后续 `reproduction/fix-and-inference` 分支已修复训练入口参数处理，并添加独立推理工具；随后修复了训练计分终点、response mask 与 critic 配置等工程问题，保留原目标函数和 log-lambda 优化方式。完整训练尚未验证。环境与推理进度见 [INFERENCE_ZH.md](INFERENCE_ZH.md)，训练链路审计见 [TRAINING_AUDIT_ZH.md](TRAINING_AUDIT_ZH.md)。
 
 - 论文：[Safe RLHF-V: Safe Reinforcement Learning from Multi-modal Human Feedback](https://arxiv.org/abs/2503.17682)，调研版本 v2。
 - 数据：[BeaverTails-V](https://huggingface.co/datasets/saferlhf-v/BeaverTails-V)，调研 revision `ee19041205c720c0faea575de563de8a6a8f9094`。
@@ -50,9 +50,8 @@ values = list(unparsed_args[2::2])
 - `pyproject.toml` 依赖几乎未锁定。vLLM、PyTorch、Transformers、DeepSpeed 的最新组合未必兼容旧模型代码；依赖清单未显式声明代码直接导入的 PyYAML。先用独立环境锁定依赖，vLLM 非必要时避免与训练环境耦合。
 - YAML 没有 `processor_kwargs`/`lora_cfgs`/`bnb_cfgs`。**不是简单的缺字段 AttributeError**：`dict_to_namedtuple` 对缺字段返回 None，`namedtuple_to_dict(None)` 返回 `{}`。需检查每个消费点，不应盲目添加配置并声称修好了。
 - `SafeRLHFVTrainer` 未调用基类构造函数；基类的 `self.lora_cfgs`、`self.bnb_cfgs` 初始化路径需检查，特别是保存/LoRA 分支。
-- `safe_rlhf_v.py` 在 actor 与 **cost** tokenizer 相同时却赋值 `self.reward_tokenizer = self.tokenizer`，疑似变量笔误；后续又无条件替换 cost tokenizer，需要同/不同 tokenizer 的测试。
-- YAML 有 `cost_critic_model_name_or_path`，但代码实际从 `cost_model_name_or_path` 加载 cost critic。应明确支持独立 critic checkpoint 或移除误导性配置。
-- CM 模板有意把 safer response 放到低 cost 一侧，且 harmless rate 取负。不能只凭变量名 `better`/`worse` 就翻转顺序；应验证“有害回答 cost 更高、安全回答 cost 更低”、0 分标签和 7 档评分对应的损失。
+- 训练计分、response mask、scalar tokenizer 路由和 cost critic checkpoint 配置问题已通过回归确认并修复，见 [TRAINING_AUDIT_ZH.md](TRAINING_AUDIT_ZH.md)。这不等于真实 DeepSpeed 训练路径已验证。
+- CM 模板将 safer response 放到低 cost 一侧、harmless rating 取负，与实际 loss 和 actor 成本惩罚方向一致，已保留。0 分标签不产生绝对项梯度；训练后仍需校准成本阈值和评估 CM 质量。
 - 示例只训练 `animal_abuse`，不是全 20 类。完整训练要明确合并各类别、类别权重和 train/evaluation 隔离，避免同图不同问答泄漏。
 - 默认 RL 序列长 8192、生成 512；需先用小 batch/短序列测显存，不能假设 8 卡一定直接跑通。
 - `scripts/setup.sh` 生成 `MASTER_PORT`，但需要验证实际 launcher 使用该端口；脚本依赖从 `scripts/` 启动，后续应改成相对脚本路径定位。
@@ -71,7 +70,7 @@ values = list(unparsed_args[2::2])
 - 基础 `llava-hf/llava-1.5-7b-hf` 与发布策略，在同一批 BeaverTails-V evaluation 上推理。
 - 固定 prompt、chat template、max_new_tokens、seed 与解码参数，保存逐样本输出和元信息。
 - 按论文 Appendix C 用 GPT-4o 对 helpfulness/safety 分开 judge；随机交换 A/B 并记录 ties、失败与重复率。外部 API 涉及数据发送与费用，启动前确认授权；记录准确 judge 版本。
-- 本地 guard 评估可补充，但不应冒充论文 GPT-4o win rate。
+- 本地 guard 评估理论上可补充，但不应冒充论文 GPT-4o win rate；当前按用户要求暂停新增本地 judge，先验证训练工程链路。
 
 ### P2：最小训练闭环
 
