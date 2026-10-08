@@ -15,3 +15,13 @@ checkpoints/
 *.pth
 *.parquet
 *.arrow
+# Local experiment assets (keep large files and runtime metadata out of Git).
+/models/
+/datasets/
+/hf-cache/
+/runs/
+/logs/
+/envs/
+/pip-cache/
+/tmp/
+/assets.json

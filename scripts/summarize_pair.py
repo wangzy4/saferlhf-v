@@ -17,6 +17,12 @@ def repetition(text):
     return 1 - len(set(grams)) / len(grams) if grams else 0.0
 
 
+def repeated_span(text):
+    # Also catches whitespace-free loops such as TheTheThe... that word ngrams miss.
+    return any(any(char.isalnum() for char in match.group(1))
+               for match in re.finditer(r'(.{2,32}?)\1{7,}', text, re.S))
+
+
 def wilson(successes, total):
     if not total:
         return None
@@ -42,6 +48,7 @@ def summarize(records):
               'token_limit_rate': sum(r['hit_token_limit'] for r in records)/len(records),
               'refusal_marker_rate': sum(bool(REFUSAL.search(r['response'])) for r in records)/len(records),
               'mean_repeated_trigram_fraction': sum(repetition(r['response']) for r in records)/len(records),
+              'repeated_span_rate': sum(repeated_span(r['response']) for r in records)/len(records),
               'empty_response_rate': sum(not r['response'] for r in records)/len(records)}
     for label, field in [('helpful', 'helpful_id'), ('safer', 'safer_id')]:
         for score in ['mean_logp', 'sum_logp']:

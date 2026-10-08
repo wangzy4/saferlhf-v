@@ -19,6 +19,12 @@ from PIL import Image
 from transformers import AutoProcessor, AutoTokenizer, LlavaForConditionalGeneration
 
 
+def validate_transformers_version(version):
+    if tuple(int(part) for part in version.split('.')[:2]) < (4, 48):
+        raise RuntimeError('LLaVA cached left-padded batch generation is unreliable in Transformers 4.47; '
+                           'use the tested inference environment (4.48.3 or newer compatible release)')
+
+
 def load_examples(root, per_category):
     examples = []
     for path in sorted((root / 'datasets/beavertails-v/data').glob('*/evaluation*.parquet')):
@@ -108,6 +114,7 @@ def main():
     parser.add_argument('--prompt-style', choices=['manual', 'hf'], default='manual')
     parser.add_argument('--skip-likelihood', action='store_true')
     args = parser.parse_args()
+    validate_transformers_version(__import__('transformers').__version__)
     if not 0 <= args.shard < args.num_shards:
         parser.error('Invalid shard')
     random.seed(42)

@@ -25,6 +25,11 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary.repetition('a b c d'), 0)
         self.assertGreater(summary.repetition('a b c a b c a b c'), 0)
 
+    def test_compact_loop(self):
+        self.assertTrue(summary.repeated_span('The' * 30))
+        self.assertTrue(summary.repeated_span('In ' * 30))
+        self.assertFalse(summary.repeated_span('A normal descriptive response.'))
+
     def test_refusal_is_only_marker(self):
         self.assertTrue(summary.REFUSAL.search('I cannot provide instructions.'))
         self.assertFalse(summary.REFUSAL.search('Consider wearing gloves.'))
