@@ -44,7 +44,12 @@ def agreement(record, field, score):
 
 
 def summarize(records):
-    result = {'n': len(records), 'mean_generated_tokens': sum(r['generated_tokens'] for r in records)/len(records),
+    generation_seconds = sum(r['batch_generation_seconds'] / r['batch_size'] for r in records)
+    generated_tokens = sum(r['generated_tokens'] for r in records)
+    result = {'n': len(records), 'mean_generated_tokens': generated_tokens/len(records),
+              'summed_batch_generation_seconds': generation_seconds,
+              'amortized_generation_seconds_per_sample': generation_seconds/len(records),
+              'generated_tokens_per_replica_second': generated_tokens/generation_seconds if generation_seconds else None,
               'token_limit_rate': sum(r['hit_token_limit'] for r in records)/len(records),
               'refusal_marker_rate': sum(bool(REFUSAL.search(r['response'])) for r in records)/len(records),
               'mean_repeated_trigram_fraction': sum(repetition(r['response']) for r in records)/len(records),

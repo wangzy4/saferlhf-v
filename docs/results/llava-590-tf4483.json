@@ -1,0 +1,1908 @@
+{
+  "paired_n": 590,
+  "warning": "Local diagnostics and likelihood preference agreement; not generated-response safety accuracy or GPT-4o pairwise win rate.",
+  "models": {
+    "base": {
+      "n": 590,
+      "mean_generated_tokens": 188.46271186440677,
+      "summed_batch_generation_seconds": 1054.5565723227337,
+      "amortized_generation_seconds_per_sample": 1.7873840208859892,
+      "generated_tokens_per_replica_second": 105.44052630110657,
+      "token_limit_rate": 0.003389830508474576,
+      "refusal_marker_rate": 0.010169491525423728,
+      "mean_repeated_trigram_fraction": 0.039166301696835874,
+      "repeated_span_rate": 0.003389830508474576,
+      "empty_response_rate": 0.0,
+      "helpful_mean_logp_agreement": {
+        "n": 590,
+        "rate": 0.5830508474576271,
+        "wilson_95_ci": [
+          0.5428533424472819,
+          0.6221738297818109
+        ]
+      },
+      "helpful_sum_logp_agreement": {
+        "n": 590,
+        "rate": 0.19830508474576272,
+        "wilson_95_ci": [
+          0.16812793128427897,
+          0.2323856063324862
+        ]
+      },
+      "safer_mean_logp_agreement": {
+        "n": 590,
+        "rate": 0.39152542372881355,
+        "wilson_95_ci": [
+          0.3529634425535645,
+          0.43149086310639595
+        ]
+      },
+      "safer_sum_logp_agreement": {
+        "n": 590,
+        "rate": 0.5050847457627119,
+        "wilson_95_ci": [
+          0.4648386688692646,
+          0.5452650355529248
+        ]
+      }
+    },
+    "safe": {
+      "n": 590,
+      "mean_generated_tokens": 287.80677966101695,
+      "summed_batch_generation_seconds": 1678.7966820565052,
+      "amortized_generation_seconds_per_sample": 2.845418105180517,
+      "generated_tokens_per_replica_second": 101.14744793990762,
+      "token_limit_rate": 0.05423728813559322,
+      "refusal_marker_rate": 0.03559322033898305,
+      "mean_repeated_trigram_fraction": 0.008050060438170031,
+      "repeated_span_rate": 0.0,
+      "empty_response_rate": 0.0,
+      "helpful_mean_logp_agreement": {
+        "n": 590,
+        "rate": 0.6677966101694915,
+        "wilson_95_ci": [
+          0.6288125280422172,
+          0.7046097178900315
+        ]
+      },
+      "helpful_sum_logp_agreement": {
+        "n": 590,
+        "rate": 0.18983050847457628,
+        "wilson_95_ci": [
+          0.16023107881653564,
+          0.22344295142991388
+        ]
+      },
+      "safer_mean_logp_agreement": {
+        "n": 590,
+        "rate": 0.42542372881355933,
+        "wilson_95_ci": [
+          0.38613783153020553,
+          0.46567450361101737
+        ]
+      },
+      "safer_sum_logp_agreement": {
+        "n": 590,
+        "rate": 0.5135593220338983,
+        "wilson_95_ci": [
+          0.47327105104177314,
+          0.5536721607507319
+        ]
+      }
+    }
+  },
+  "categories": {
+    "animal_abuse": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 195.16666666666666,
+        "summed_batch_generation_seconds": 53.06610181473661,
+        "amortized_generation_seconds_per_sample": 1.7688700604912204,
+        "generated_tokens_per_replica_second": 110.33408899038537,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.029213533345476016,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.2,
+          "wilson_95_ci": [
+            0.09504978102401235,
+            0.37306047381027446
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 287.3333333333333,
+        "summed_batch_generation_seconds": 87.46586472121999,
+        "amortized_generation_seconds_per_sample": 2.915528824040666,
+        "generated_tokens_per_replica_second": 98.55273285726417,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.00871488625530098,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.2,
+          "wilson_95_ci": [
+            0.09504978102401235,
+            0.37306047381027446
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        }
+      }
+    },
+    "dangerous_behavior": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 223.76666666666668,
+        "summed_batch_generation_seconds": 60.58986921038013,
+        "amortized_generation_seconds_per_sample": 2.019662307012671,
+        "generated_tokens_per_replica_second": 110.79409953322597,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.03257819527078876,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.1,
+          "wilson_95_ci": [
+            0.03459925995971615,
+            0.25621441315266624
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.4,
+          "wilson_95_ci": [
+            0.24590394326083403,
+            0.5767994750172616
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 338.9,
+        "summed_batch_generation_seconds": 93.87488434650004,
+        "amortized_generation_seconds_per_sample": 3.1291628115500014,
+        "generated_tokens_per_replica_second": 108.30372863600826,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.006930516228833569,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.1,
+          "wilson_95_ci": [
+            0.03459925995971615,
+            0.25621441315266624
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5666666666666667,
+          "wilson_95_ci": [
+            0.3919700954540873,
+            0.7262276256938489
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.4,
+          "wilson_95_ci": [
+            0.24590394326083403,
+            0.5767994750172616
+          ]
+        }
+      }
+    },
+    "deception_in_personal_relationships": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 172.43333333333334,
+        "summed_batch_generation_seconds": 48.803209232515655,
+        "amortized_generation_seconds_per_sample": 1.6267736410838551,
+        "generated_tokens_per_replica_second": 105.99712767564134,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.05871935480136159,
+        "repeated_span_rate": 0.03333333333333333,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6333333333333333,
+          "wilson_95_ci": [
+            0.45513246433604937,
+            0.7812629779598231
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.13333333333333333,
+          "wilson_95_ci": [
+            0.05309569424218104,
+            0.2968168394441695
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.3333333333333333,
+          "wilson_95_ci": [
+            0.19230295526846194,
+            0.5122027418616973
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.3,
+          "wilson_95_ci": [
+            0.16664562643958933,
+            0.4787612101166018
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 260.5,
+        "summed_batch_generation_seconds": 83.81627114582807,
+        "amortized_generation_seconds_per_sample": 2.7938757048609357,
+        "generated_tokens_per_replica_second": 93.23965255389423,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.006257484441404597,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.7666666666666667,
+          "wilson_95_ci": [
+            0.5907132766967574,
+            0.8820776078949878
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.13333333333333333,
+          "wilson_95_ci": [
+            0.05309569424218104,
+            0.2968168394441695
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4,
+          "wilson_95_ci": [
+            0.24590394326083403,
+            0.5767994750172616
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.3,
+          "wilson_95_ci": [
+            0.16664562643958933,
+            0.4787612101166018
+          ]
+        }
+      }
+    },
+    "discriminatory_depictions": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 151.33333333333334,
+        "summed_batch_generation_seconds": 37.132953923312016,
+        "amortized_generation_seconds_per_sample": 1.2377651307770672,
+        "generated_tokens_per_replica_second": 122.26336771849962,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.02369854917948509,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.26666666666666666,
+          "wilson_95_ci": [
+            0.14182495553910618,
+            0.4444830204431169
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4,
+          "wilson_95_ci": [
+            0.24590394326083403,
+            0.5767994750172616
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 219.56666666666666,
+        "summed_batch_generation_seconds": 71.05203916598111,
+        "amortized_generation_seconds_per_sample": 2.368401305532704,
+        "generated_tokens_per_replica_second": 92.70669888322894,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.005040787695212449,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.2,
+          "wilson_95_ci": [
+            0.09504978102401235,
+            0.37306047381027446
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        }
+      }
+    },
+    "environmental_damage": {
+      "base": {
+        "n": 28,
+        "mean_generated_tokens": 228.14285714285714,
+        "summed_batch_generation_seconds": 55.617235799029004,
+        "amortized_generation_seconds_per_sample": 1.9863298499653215,
+        "generated_tokens_per_replica_second": 114.85648123691047,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.04238209505347352,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.6785714285714286,
+          "wilson_95_ci": [
+            0.4933850455563118,
+            0.8206695245657927
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.10714285714285714,
+          "wilson_95_ci": [
+            0.03711769205479949,
+            0.2719622536765708
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.5714285714285714,
+          "wilson_95_ci": [
+            0.390704789856154,
+            0.7349170381926877
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.42857142857142855,
+          "wilson_95_ci": [
+            0.2650829618073122,
+            0.609295210143846
+          ]
+        }
+      },
+      "safe": {
+        "n": 28,
+        "mean_generated_tokens": 393.75,
+        "summed_batch_generation_seconds": 89.18613119231304,
+        "amortized_generation_seconds_per_sample": 3.185218971154037,
+        "generated_tokens_per_replica_second": 123.6178748041741,
+        "token_limit_rate": 0.10714285714285714,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.01098631381070406,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.7857142857142857,
+          "wilson_95_ci": [
+            0.6046105292072612,
+            0.8978767829881058
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.14285714285714285,
+          "wilson_95_ci": [
+            0.056989129307017855,
+            0.31490173044877334
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.5357142857142857,
+          "wilson_95_ci": [
+            0.3581239514210167,
+            0.7046869626034041
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.4642857142857143,
+          "wilson_95_ci": [
+            0.29531303739659587,
+            0.6418760485789833
+          ]
+        }
+      }
+    },
+    "false_information": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 157.43333333333334,
+        "summed_batch_generation_seconds": 49.67828205053229,
+        "amortized_generation_seconds_per_sample": 1.655942735017743,
+        "generated_tokens_per_replica_second": 95.0717256123271,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.038731130499949376,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.16666666666666666,
+          "wilson_95_ci": [
+            0.07336434240351683,
+            0.33564705185680177
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 261.4,
+        "summed_batch_generation_seconds": 77.76922021777136,
+        "amortized_generation_seconds_per_sample": 2.5923073405923787,
+        "generated_tokens_per_replica_second": 100.83680893341389,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.03333333333333333,
+        "mean_repeated_trigram_fraction": 0.008636922788088712,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.7333333333333333,
+          "wilson_95_ci": [
+            0.5555169795568831,
+            0.8581750444608938
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.06666666666666667,
+          "wilson_95_ci": [
+            0.01847663532769335,
+            0.21323817721072091
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.4,
+          "wilson_95_ci": [
+            0.24590394326083403,
+            0.5767994750172616
+          ]
+        }
+      }
+    },
+    "financial_and_academic_fraud": {
+      "base": {
+        "n": 29,
+        "mean_generated_tokens": 198.17241379310346,
+        "summed_batch_generation_seconds": 51.60845599044114,
+        "amortized_generation_seconds_per_sample": 1.779601930704867,
+        "generated_tokens_per_replica_second": 111.35772015858123,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.033538670958258514,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6896551724137931,
+          "wilson_95_ci": [
+            0.5076952952728147,
+            0.8272457551023193
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.2413793103448276,
+          "wilson_95_ci": [
+            0.12218268185062131,
+            0.4210795221832869
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.13793103448275862,
+          "wilson_95_ci": [
+            0.05497350852047822,
+            0.30559357712699325
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.6551724137931034,
+          "wilson_95_ci": [
+            0.47344776507155983,
+            0.8005949125080951
+          ]
+        }
+      },
+      "safe": {
+        "n": 29,
+        "mean_generated_tokens": 339.44827586206895,
+        "summed_batch_generation_seconds": 90.75081942189718,
+        "amortized_generation_seconds_per_sample": 3.129338600755075,
+        "generated_tokens_per_replica_second": 108.47284975175387,
+        "token_limit_rate": 0.10344827586206896,
+        "refusal_marker_rate": 0.034482758620689655,
+        "mean_repeated_trigram_fraction": 0.00971636068800827,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.7586206896551724,
+          "wilson_95_ci": [
+            0.578920477816713,
+            0.8778173181493787
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.20689655172413793,
+          "wilson_95_ci": [
+            0.09845936515585207,
+            0.3839044660825772
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.20689655172413793,
+          "wilson_95_ci": [
+            0.09845936515585207,
+            0.3839044660825772
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.6896551724137931,
+          "wilson_95_ci": [
+            0.5076952952728147,
+            0.8272457551023193
+          ]
+        }
+      }
+    },
+    "hacking_or_digital_crime": {
+      "base": {
+        "n": 28,
+        "mean_generated_tokens": 250.60714285714286,
+        "summed_batch_generation_seconds": 63.0794240636169,
+        "amortized_generation_seconds_per_sample": 2.2528365737006033,
+        "generated_tokens_per_replica_second": 111.24071128048365,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.04210106706185316,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.6785714285714286,
+          "wilson_95_ci": [
+            0.4933850455563118,
+            0.8206695245657927
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.21428571428571427,
+          "wilson_95_ci": [
+            0.10212321701189422,
+            0.3953894707927388
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.35714285714285715,
+          "wilson_95_ci": [
+            0.20705611972458876,
+            0.5417002241777278
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.75,
+          "wilson_95_ci": [
+            0.566439747592954,
+            0.8732366505779922
+          ]
+        }
+      },
+      "safe": {
+        "n": 28,
+        "mean_generated_tokens": 326.57142857142856,
+        "summed_batch_generation_seconds": 87.5606042467407,
+        "amortized_generation_seconds_per_sample": 3.127164437383596,
+        "generated_tokens_per_replica_second": 104.43052647549963,
+        "token_limit_rate": 0.10714285714285714,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.012362347558029976,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.7142857142857143,
+          "wilson_95_ci": [
+            0.529403642629825,
+            0.8474618415167003
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.21428571428571427,
+          "wilson_95_ci": [
+            0.10212321701189422,
+            0.3953894707927388
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 28,
+          "rate": 0.39285714285714285,
+          "wilson_95_ci": [
+            0.23565451827580033,
+            0.575912739650937
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 28,
+          "rate": 0.75,
+          "wilson_95_ci": [
+            0.566439747592954,
+            0.8732366505779922
+          ]
+        }
+      }
+    },
+    "harmful_health_content": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 163.46666666666667,
+        "summed_batch_generation_seconds": 49.84629235509783,
+        "amortized_generation_seconds_per_sample": 1.661543078503261,
+        "generated_tokens_per_replica_second": 98.38244267125442,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.042375827848329904,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.2,
+          "wilson_95_ci": [
+            0.09504978102401235,
+            0.37306047381027446
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5666666666666667,
+          "wilson_95_ci": [
+            0.3919700954540873,
+            0.7262276256938489
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.3,
+          "wilson_95_ci": [
+            0.16664562643958933,
+            0.4787612101166018
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 267.26666666666665,
+        "summed_batch_generation_seconds": 84.32954018359305,
+        "amortized_generation_seconds_per_sample": 2.810984672786435,
+        "generated_tokens_per_replica_second": 95.07937530009161,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.1,
+        "mean_repeated_trigram_fraction": 0.007290699786591129,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6333333333333333,
+          "wilson_95_ci": [
+            0.45513246433604937,
+            0.7812629779598231
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.2,
+          "wilson_95_ci": [
+            0.09504978102401235,
+            0.37306047381027446
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.36666666666666664,
+          "wilson_95_ci": [
+            0.21873702204017678,
+            0.5448675356639506
+          ]
+        }
+      }
+    },
+    "horror_and_gore": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 214.5,
+        "summed_batch_generation_seconds": 59.64674117905088,
+        "amortized_generation_seconds_per_sample": 1.9882247059683626,
+        "generated_tokens_per_replica_second": 107.88518991646269,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.054856901013198185,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5333333333333333,
+          "wilson_95_ci": [
+            0.3614201328152505,
+            0.6976787277587178
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.1,
+          "wilson_95_ci": [
+            0.03459925995971615,
+            0.25621441315266624
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.26666666666666666,
+          "wilson_95_ci": [
+            0.14182495553910618,
+            0.4444830204431169
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.5666666666666667,
+          "wilson_95_ci": [
+            0.3919700954540873,
+            0.7262276256938489
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 326.1333333333333,
+        "summed_batch_generation_seconds": 88.24903884914238,
+        "amortized_generation_seconds_per_sample": 2.941634628304746,
+        "generated_tokens_per_replica_second": 110.86806301341471,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.012860545213023747,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.1,
+          "wilson_95_ci": [
+            0.03459925995971615,
+            0.25621441315266624
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.3333333333333333,
+          "wilson_95_ci": [
+            0.19230295526846194,
+            0.5122027418616973
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        }
+      }
+    },
+    "identity_misuse_and_impersonation": {
+      "base": {
+        "n": 29,
+        "mean_generated_tokens": 172.31034482758622,
+        "summed_batch_generation_seconds": 50.507862568832934,
+        "amortized_generation_seconds_per_sample": 1.7416504334080323,
+        "generated_tokens_per_replica_second": 98.93509140661035,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.034482758620689655,
+        "mean_repeated_trigram_fraction": 0.04108459834459116,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6206896551724138,
+          "wilson_95_ci": [
+            0.4400222620928496,
+            0.7731220426913266
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.13793103448275862,
+          "wilson_95_ci": [
+            0.05497350852047822,
+            0.30559357712699325
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.27586206896551724,
+          "wilson_95_ci": [
+            0.1469858133850274,
+            0.4571747634443597
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.6896551724137931,
+          "wilson_95_ci": [
+            0.5076952952728147,
+            0.8272457551023193
+          ]
+        }
+      },
+      "safe": {
+        "n": 29,
+        "mean_generated_tokens": 295.41379310344826,
+        "summed_batch_generation_seconds": 90.53989773447393,
+        "amortized_generation_seconds_per_sample": 3.1220654391197904,
+        "generated_tokens_per_replica_second": 94.62126879273063,
+        "token_limit_rate": 0.10344827586206896,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.008625860247139027,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.7241379310344828,
+          "wilson_95_ci": [
+            0.5428252365556403,
+            0.8530141866149725
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.13793103448275862,
+          "wilson_95_ci": [
+            0.05497350852047822,
+            0.30559357712699325
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.3103448275862069,
+          "wilson_95_ci": [
+            0.17275424489768068,
+            0.49230470472718546
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.6896551724137931,
+          "wilson_95_ci": [
+            0.5076952952728147,
+            0.8272457551023193
+          ]
+        }
+      }
+    },
+    "insulting_and_harassing_behavior": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 177.1,
+        "summed_batch_generation_seconds": 51.61838656954933,
+        "amortized_generation_seconds_per_sample": 1.7206128856516443,
+        "generated_tokens_per_replica_second": 102.92843990467226,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.1,
+        "mean_repeated_trigram_fraction": 0.05492433844546903,
+        "repeated_span_rate": 0.03333333333333333,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6333333333333333,
+          "wilson_95_ci": [
+            0.45513246433604937,
+            0.7812629779598231
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.23333333333333334,
+          "wilson_95_ci": [
+            0.11792239210501232,
+            0.40928672330324267
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.36666666666666664,
+          "wilson_95_ci": [
+            0.21873702204017678,
+            0.5448675356639506
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.5666666666666667,
+          "wilson_95_ci": [
+            0.3919700954540873,
+            0.7262276256938489
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 227.56666666666666,
+        "summed_batch_generation_seconds": 76.72842656518333,
+        "amortized_generation_seconds_per_sample": 2.5576142188394444,
+        "generated_tokens_per_replica_second": 88.97615011302543,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.06666666666666667,
+        "mean_repeated_trigram_fraction": 0.010052155660832866,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.7,
+          "wilson_95_ci": [
+            0.5212387898833981,
+            0.8333543735604105
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.23333333333333334,
+          "wilson_95_ci": [
+            0.11792239210501232,
+            0.40928672330324267
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.5666666666666667,
+          "wilson_95_ci": [
+            0.3919700954540873,
+            0.7262276256938489
+          ]
+        }
+      }
+    },
+    "pornographic_content": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 158.03333333333333,
+        "summed_batch_generation_seconds": 48.2454873531824,
+        "amortized_generation_seconds_per_sample": 1.6081829117727466,
+        "generated_tokens_per_replica_second": 98.26825802988331,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.033186722137945206,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.23333333333333334,
+          "wilson_95_ci": [
+            0.11792239210501232,
+            0.40928672330324267
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.26666666666666666,
+          "wilson_95_ci": [
+            0.14182495553910618,
+            0.4444830204431169
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 249.63333333333333,
+        "summed_batch_generation_seconds": 76.87404776108451,
+        "amortized_generation_seconds_per_sample": 2.562468258702817,
+        "generated_tokens_per_replica_second": 97.41909289432671,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.1,
+        "mean_repeated_trigram_fraction": 0.0042246763946155825,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.26666666666666666,
+          "wilson_95_ci": [
+            0.14182495553910618,
+            0.4444830204431169
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.6333333333333333,
+          "wilson_95_ci": [
+            0.45513246433604937,
+            0.7812629779598231
+          ]
+        }
+      }
+    },
+    "privacy_invasion_and_surveillance": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 179.03333333333333,
+        "summed_batch_generation_seconds": 46.531532459310256,
+        "amortized_generation_seconds_per_sample": 1.5510510819770085,
+        "generated_tokens_per_replica_second": 115.42710321644144,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.03519316646644547,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5333333333333333,
+          "wilson_95_ci": [
+            0.3614201328152505,
+            0.6976787277587178
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.2,
+          "wilson_95_ci": [
+            0.09504978102401235,
+            0.37306047381027446
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6333333333333333,
+          "wilson_95_ci": [
+            0.45513246433604937,
+            0.7812629779598231
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 274.93333333333334,
+        "summed_batch_generation_seconds": 77.60895743512083,
+        "amortized_generation_seconds_per_sample": 2.586965247837361,
+        "generated_tokens_per_replica_second": 106.27639221793598,
+        "token_limit_rate": 0.06666666666666667,
+        "refusal_marker_rate": 0.03333333333333333,
+        "mean_repeated_trigram_fraction": 0.0038335705428301004,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6666666666666666,
+          "wilson_95_ci": [
+            0.48779725813830266,
+            0.807697044731538
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.3,
+          "wilson_95_ci": [
+            0.16664562643958933,
+            0.4787612101166018
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5666666666666667,
+          "wilson_95_ci": [
+            0.3919700954540873,
+            0.7262276256938489
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        }
+      }
+    },
+    "psychological_harm_and_manipulation": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 178.26666666666668,
+        "summed_batch_generation_seconds": 52.27639006252866,
+        "amortized_generation_seconds_per_sample": 1.742546335417622,
+        "generated_tokens_per_replica_second": 102.30239681055191,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.03333333333333333,
+        "mean_repeated_trigram_fraction": 0.03005841760218227,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.4666666666666667,
+          "wilson_95_ci": [
+            0.30232127224128236,
+            0.6385798671847496
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.26666666666666666,
+          "wilson_95_ci": [
+            0.14182495553910618,
+            0.4444830204431169
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 238.76666666666668,
+        "summed_batch_generation_seconds": 81.04739803646225,
+        "amortized_generation_seconds_per_sample": 2.7015799345487417,
+        "generated_tokens_per_replica_second": 88.38038201766146,
+        "token_limit_rate": 0.03333333333333333,
+        "refusal_marker_rate": 0.16666666666666666,
+        "mean_repeated_trigram_fraction": 0.0032270653095180847,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6,
+          "wilson_95_ci": [
+            0.42320052498273836,
+            0.7540960567391659
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.23333333333333334,
+          "wilson_95_ci": [
+            0.11792239210501232,
+            0.40928672330324267
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.4,
+          "wilson_95_ci": [
+            0.24590394326083403,
+            0.5767994750172616
+          ]
+        }
+      }
+    },
+    "psychological_horror_and_dark_themes": {
+      "base": {
+        "n": 29,
+        "mean_generated_tokens": 228.58620689655172,
+        "summed_batch_generation_seconds": 60.340243174287025,
+        "amortized_generation_seconds_per_sample": 2.080698040492656,
+        "generated_tokens_per_replica_second": 109.86034611847299,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.06397845201609882,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.5172413793103449,
+          "wilson_95_ci": [
+            0.3443073797056916,
+            0.6861418066920478
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.1724137931034483,
+          "wilson_95_ci": [
+            0.07597745271479928,
+            0.34548800572815114
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.3793103448275862,
+          "wilson_95_ci": [
+            0.22687795730867344,
+            0.5599777379071503
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.5172413793103449,
+          "wilson_95_ci": [
+            0.3443073797056916,
+            0.6861418066920478
+          ]
+        }
+      },
+      "safe": {
+        "n": 29,
+        "mean_generated_tokens": 385.6551724137931,
+        "summed_batch_generation_seconds": 90.66564936685609,
+        "amortized_generation_seconds_per_sample": 3.1264017023053823,
+        "generated_tokens_per_replica_second": 123.35432523895257,
+        "token_limit_rate": 0.06896551724137931,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.014349846406762784,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6206896551724138,
+          "wilson_95_ci": [
+            0.4400222620928496,
+            0.7731220426913266
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.13793103448275862,
+          "wilson_95_ci": [
+            0.05497350852047822,
+            0.30559357712699325
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.27586206896551724,
+          "wilson_95_ci": [
+            0.1469858133850274,
+            0.4571747634443597
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.4827586206896552,
+          "wilson_95_ci": [
+            0.3138581933079522,
+            0.6556926202943085
+          ]
+        }
+      }
+    },
+    "sensitive_information_in_key_areas": {
+      "base": {
+        "n": 29,
+        "mean_generated_tokens": 167.82758620689654,
+        "summed_batch_generation_seconds": 49.061950597388204,
+        "amortized_generation_seconds_per_sample": 1.691791399909938,
+        "generated_tokens_per_replica_second": 99.20111085552911,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.03179529527583149,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.4482758620689655,
+          "wilson_95_ci": [
+            0.2841291114874579,
+            0.6245233293193238
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.13793103448275862,
+          "wilson_95_ci": [
+            0.05497350852047822,
+            0.30559357712699325
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.4482758620689655,
+          "wilson_95_ci": [
+            0.2841291114874579,
+            0.6245233293193238
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.41379310344827586,
+          "wilson_95_ci": [
+            0.2551293527964552,
+            0.5926247152148476
+          ]
+        }
+      },
+      "safe": {
+        "n": 29,
+        "mean_generated_tokens": 319.7241379310345,
+        "summed_batch_generation_seconds": 84.77091803058283,
+        "amortized_generation_seconds_per_sample": 2.9231351045028564,
+        "generated_tokens_per_replica_second": 109.37713328355058,
+        "token_limit_rate": 0.10344827586206896,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.003918739335096314,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6896551724137931,
+          "wilson_95_ci": [
+            0.5076952952728147,
+            0.8272457551023193
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.13793103448275862,
+          "wilson_95_ci": [
+            0.05497350852047822,
+            0.30559357712699325
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.41379310344827586,
+          "wilson_95_ci": [
+            0.2551293527964552,
+            0.5926247152148476
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.41379310344827586,
+          "wilson_95_ci": [
+            0.2551293527964552,
+            0.5926247152148476
+          ]
+        }
+      }
+    },
+    "sexual_crimes": {
+      "base": {
+        "n": 30,
+        "mean_generated_tokens": 142.0,
+        "summed_batch_generation_seconds": 43.892028895847034,
+        "amortized_generation_seconds_per_sample": 1.4630676298615677,
+        "generated_tokens_per_replica_second": 97.05634729505684,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.027802894583663938,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.6333333333333333,
+          "wilson_95_ci": [
+            0.45513246433604937,
+            0.7812629779598231
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.3333333333333333,
+          "wilson_95_ci": [
+            0.19230295526846194,
+            0.5122027418616973
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.3333333333333333,
+          "wilson_95_ci": [
+            0.19230295526846194,
+            0.5122027418616973
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.3,
+          "wilson_95_ci": [
+            0.16664562643958933,
+            0.4787612101166018
+          ]
+        }
+      },
+      "safe": {
+        "n": 30,
+        "mean_generated_tokens": 203.53333333333333,
+        "summed_batch_generation_seconds": 69.61278469458921,
+        "amortized_generation_seconds_per_sample": 2.320426156486307,
+        "generated_tokens_per_replica_second": 87.71377307758529,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.06666666666666667,
+        "mean_repeated_trigram_fraction": 0.007597015142464084,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.7333333333333333,
+          "wilson_95_ci": [
+            0.5555169795568831,
+            0.8581750444608938
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.26666666666666666,
+          "wilson_95_ci": [
+            0.14182495553910618,
+            0.4444830204431169
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 30,
+          "rate": 0.5,
+          "wilson_95_ci": [
+            0.33153851227173764,
+            0.6684614877282624
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 30,
+          "rate": 0.43333333333333335,
+          "wilson_95_ci": [
+            0.2737723743061511,
+            0.6080299045459127
+          ]
+        }
+      }
+    },
+    "terrorism_or_extremism": {
+      "base": {
+        "n": 29,
+        "mean_generated_tokens": 241.86206896551724,
+        "summed_batch_generation_seconds": 60.95158772630384,
+        "amortized_generation_seconds_per_sample": 2.101778887113926,
+        "generated_tokens_per_replica_second": 115.07493506970758,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.04207264616423118,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6551724137931034,
+          "wilson_95_ci": [
+            0.47344776507155983,
+            0.8005949125080951
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.2413793103448276,
+          "wilson_95_ci": [
+            0.12218268185062131,
+            0.4210795221832869
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.3103448275862069,
+          "wilson_95_ci": [
+            0.17275424489768068,
+            0.49230470472718546
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.6551724137931034,
+          "wilson_95_ci": [
+            0.47344776507155983,
+            0.8005949125080951
+          ]
+        }
+      },
+      "safe": {
+        "n": 29,
+        "mean_generated_tokens": 317.3448275862069,
+        "summed_batch_generation_seconds": 92.95976985868765,
+        "amortized_generation_seconds_per_sample": 3.205509305471988,
+        "generated_tokens_per_replica_second": 98.9998148014985,
+        "token_limit_rate": 0.1724137931034483,
+        "refusal_marker_rate": 0.0,
+        "mean_repeated_trigram_fraction": 0.010234109131714872,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6551724137931034,
+          "wilson_95_ci": [
+            0.47344776507155983,
+            0.8005949125080951
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.2413793103448276,
+          "wilson_95_ci": [
+            0.12218268185062131,
+            0.4210795221832869
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.3103448275862069,
+          "wilson_95_ci": [
+            0.17275424489768068,
+            0.49230470472718546
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.6551724137931034,
+          "wilson_95_ci": [
+            0.47344776507155983,
+            0.8005949125080951
+          ]
+        }
+      }
+    },
+    "violence_and_physical_harm": {
+      "base": {
+        "n": 29,
+        "mean_generated_tokens": 177.86206896551724,
+        "summed_batch_generation_seconds": 62.06253729679156,
+        "amortized_generation_seconds_per_sample": 2.1400874929928126,
+        "generated_tokens_per_replica_second": 83.10971843342043,
+        "token_limit_rate": 0.0,
+        "refusal_marker_rate": 0.034482758620689655,
+        "mean_repeated_trigram_fraction": 0.025544769174615487,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.6206896551724138,
+          "wilson_95_ci": [
+            0.4400222620928496,
+            0.7731220426913266
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.27586206896551724,
+          "wilson_95_ci": [
+            0.1469858133850274,
+            0.4571747634443597
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.3103448275862069,
+          "wilson_95_ci": [
+            0.17275424489768068,
+            0.49230470472718546
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.5172413793103449,
+          "wilson_95_ci": [
+            0.3443073797056916,
+            0.6861418066920478
+          ]
+        }
+      },
+      "safe": {
+        "n": 29,
+        "mean_generated_tokens": 237.9655172413793,
+        "summed_batch_generation_seconds": 83.93441908247769,
+        "amortized_generation_seconds_per_sample": 2.8942903131888857,
+        "generated_tokens_per_replica_second": 82.21895231345762,
+        "token_limit_rate": 0.034482758620689655,
+        "refusal_marker_rate": 0.10344827586206896,
+        "mean_repeated_trigram_fraction": 0.00680278682694385,
+        "repeated_span_rate": 0.0,
+        "empty_response_rate": 0.0,
+        "helpful_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.5862068965517241,
+          "wilson_95_ci": [
+            0.40737528478515245,
+            0.7448706472035449
+          ]
+        },
+        "helpful_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.27586206896551724,
+          "wilson_95_ci": [
+            0.1469858133850274,
+            0.4571747634443597
+          ]
+        },
+        "safer_mean_logp_agreement": {
+          "n": 29,
+          "rate": 0.27586206896551724,
+          "wilson_95_ci": [
+            0.1469858133850274,
+            0.4571747634443597
+          ]
+        },
+        "safer_sum_logp_agreement": {
+          "n": 29,
+          "rate": 0.4482758620689655,
+          "wilson_95_ci": [
+            0.2841291114874579,
+            0.6245233293193238
+          ]
+        }
+      }
+    }
+  },
+  "paired_changes": {
+    "helpful": {
+      "n": 590,
+      "base_wrong_safe_right": 68,
+      "base_right_safe_wrong": 18
+    },
+    "safer": {
+      "n": 590,
+      "base_wrong_safe_right": 53,
+      "base_right_safe_wrong": 33
+    }
+  }
+}
