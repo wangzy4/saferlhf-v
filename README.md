@@ -1,6 +1,6 @@
 ## Reproduction workspace
 
-This fork preserves the upstream algorithm and adds reproduction tooling. See [复现与改进路线](docs/REPRODUCTION_ZH.md) and [推理对比说明](docs/INFERENCE_ZH.md). Run `python scripts/audit_source.py` for dependency-free syntax and CLI regression tests; no GPU work is performed.
+This fork adds reproduction tooling. See [复现进展与 RM/CM 状态](docs/REPRODUCTION_ZH.md) and [推理实验结论](docs/RESULTS_LLAVA_ZH.md). Technical setup, implementation details, and regression checks are kept separately in [开发记录](docs/development/README.md).
 
 ## Introduction
 
