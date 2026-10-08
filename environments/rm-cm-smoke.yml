@@ -1,0 +1,19 @@
+name: saferlhf-v-rm-cm-smoke
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - torch==2.5.1+cu124
+      - torchvision==0.20.1+cu124
+      - transformers==4.48.3
+      - accelerate==1.2.1
+      - datasets==3.2.0
+      - numpy==1.26.4
+      - pillow==11.1.0
+      - peft==0.14.0
+# Actual setup cloned the existing isolated inference environment, then installed
+# peft without changing inference. CUDA wheels need the PyTorch cu124 index.
+# Complete observed Python package versions: rm-cm-smoke-pip-freeze.txt.
+# This is not the full DeepSpeed training environment.

@@ -17,8 +17,11 @@ import requests
 CHUNK = 32 * 1024 * 1024
 
 
-def download(root, repo, revision, filename, target_dir, workers):
-    metadata = requests.get(f'https://huggingface.co/api/models/{repo}/revision/{revision}',
+def download(root, repo, revision, filename, target_dir, workers, repo_type='model'):
+    if repo_type not in {'model', 'dataset'}:
+        raise ValueError('repo_type must be model or dataset')
+    collection = 'models' if repo_type == 'model' else 'datasets'
+    metadata = requests.get(f'https://huggingface.co/api/{collection}/{repo}/revision/{revision}',
                             params={'blobs': 'true'}, timeout=30)
     metadata.raise_for_status()
     info = next(s for s in metadata.json()['siblings'] if s['rfilename'] == filename)
@@ -40,7 +43,8 @@ def download(root, repo, revision, filename, target_dir, workers):
         os.ftruncate(fd, size)
         for marker in markers.iterdir():
             marker.unlink()
-    resolve = f'https://huggingface.co/{repo}/resolve/{revision}/{filename}'
+    prefix = '' if repo_type == 'model' else 'datasets/'
+    resolve = f'https://huggingface.co/{prefix}{repo}/resolve/{revision}/{filename}'
     chunks = list(range((size + CHUNK - 1) // CHUNK))
 
     def worker(index):

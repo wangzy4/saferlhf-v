@@ -1,0 +1,175 @@
+{
+  "run": "rm-cm-128-32-lora-r8-v2",
+  "status": "completed_lora_smoke_not_full_reproduction",
+  "rm": {
+    "kind": "rm",
+    "mode": "lora_language_qv_plus_projector_and_score_head",
+    "author_checkpoint": false,
+    "full_parameter_reproduction": false,
+    "n_train": 128,
+    "n_validation": 32,
+    "categories": [
+      "animal_abuse",
+      "dangerous_behavior",
+      "false_information",
+      "financial_and_academic_fraud",
+      "privacy_invasion_and_surveillance"
+    ],
+    "data_revision": "ee19041205c720c0faea575de563de8a6a8f9094",
+    "base_revision": "b234b804b114d9e37bb655e11cbbb5f5e971b7a9",
+    "epochs": 2,
+    "optimizer_steps": 64,
+    "lr": 3e-05,
+    "batch_pairs": 1,
+    "gradient_accumulation": 4,
+    "lora_rank": 8,
+    "seed": 42,
+    "trainable_parameters": 25178112,
+    "total_parameters": 7088609280,
+    "initial_validation": {
+      "n": 32,
+      "loss": 0.8285784125328064,
+      "pairwise_accuracy": 0.3125,
+      "score_mean": -0.5014410018920898,
+      "score_std": 0.34832218289375305
+    },
+    "final_validation": {
+      "n": 32,
+      "loss": 0.46342892956454307,
+      "pairwise_accuracy": 0.84375,
+      "score_mean": 0.251739501953125,
+      "score_std": 0.7467062473297119
+    },
+    "final_train": {
+      "n": 128,
+      "loss": 0.46448986809991766,
+      "pairwise_accuracy": 0.78125,
+      "score_mean": 0.02559661865234375,
+      "score_std": 0.996807873249054
+    },
+    "training_seconds": 231.06243892363273,
+    "total_seconds": 360.2203177639749,
+    "peak_allocated_gib": 15.358283996582031,
+    "peak_reserved_gib": 16.677734375,
+    "reload_max_score_difference": 0.0,
+    "torch": "2.5.1+cu124",
+    "transformers": "4.48.3",
+    "peft": "0.14.0",
+    "limitations": "Small internal validation, five categories, one seed; not paper results"
+  },
+  "cm": {
+    "kind": "cm",
+    "mode": "lora_language_qv_plus_projector_and_score_head",
+    "author_checkpoint": false,
+    "full_parameter_reproduction": false,
+    "n_train": 128,
+    "n_validation": 32,
+    "categories": [
+      "animal_abuse",
+      "dangerous_behavior",
+      "false_information",
+      "financial_and_academic_fraud",
+      "privacy_invasion_and_surveillance"
+    ],
+    "data_revision": "ee19041205c720c0faea575de563de8a6a8f9094",
+    "base_revision": "b234b804b114d9e37bb655e11cbbb5f5e971b7a9",
+    "epochs": 2,
+    "optimizer_steps": 64,
+    "lr": 3e-05,
+    "batch_pairs": 1,
+    "gradient_accumulation": 4,
+    "lora_rank": 8,
+    "seed": 42,
+    "trainable_parameters": 25178112,
+    "total_parameters": 7088609280,
+    "initial_validation": {
+      "n": 32,
+      "loss": 2.2877256218343973,
+      "pairwise_accuracy": 0.5,
+      "score_mean": -0.5014410018920898,
+      "score_std": 0.34832218289375305,
+      "safety_label_accuracy_at_zero": 0.5625,
+      "balanced_safety_label_accuracy_at_zero": 0.4390243887901306,
+      "majority_class_baseline": 0.640625,
+      "unsafe_cost_mean": -0.61152184009552,
+      "safe_cost_mean": -0.4396883249282837
+    },
+    "final_validation": {
+      "n": 32,
+      "loss": 2.0170366875827312,
+      "pairwise_accuracy": 0.46875,
+      "score_mean": -0.22580337524414062,
+      "score_std": 0.25175026059150696,
+      "safety_label_accuracy_at_zero": 0.546875,
+      "balanced_safety_label_accuracy_at_zero": 0.43637326918542385,
+      "majority_class_baseline": 0.640625,
+      "unsafe_cost_mean": -0.207392156124115,
+      "safe_cost_mean": -0.23613162338733673
+    },
+    "final_train": {
+      "n": 128,
+      "loss": 1.82320418744348,
+      "pairwise_accuracy": 0.640625,
+      "score_mean": -0.30901235342025757,
+      "score_std": 0.48692557215690613,
+      "safety_label_accuracy_at_zero": 0.66796875,
+      "balanced_safety_label_accuracy_at_zero": 0.6108974367380142,
+      "majority_class_baseline": 0.609375,
+      "unsafe_cost_mean": -0.09343811124563217,
+      "safe_cost_mean": -0.4472009837627411
+    },
+    "training_seconds": 229.65254432498477,
+    "total_seconds": 358.1516452280339,
+    "peak_allocated_gib": 15.358283996582031,
+    "peak_reserved_gib": 16.677734375,
+    "reload_max_score_difference": 0.0,
+    "torch": "2.5.1+cu124",
+    "transformers": "4.48.3",
+    "peft": "0.14.0",
+    "limitations": "Small internal validation, five categories, one seed; not paper results"
+  },
+  "dataset": {
+    "data_repo": "saferlhf-v/BeaverTails-V",
+    "revision": "ee19041205c720c0faea575de563de8a6a8f9094",
+    "source_split": "train",
+    "categories": [
+      "animal_abuse",
+      "dangerous_behavior",
+      "false_information",
+      "financial_and_academic_fraud",
+      "privacy_invasion_and_surveillance"
+    ],
+    "seed": 42,
+    "n_train": 128,
+    "n_validation": 32,
+    "categories_by_split": {
+      "validation": {
+        "animal_abuse": 7,
+        "dangerous_behavior": 7,
+        "false_information": 6,
+        "financial_and_academic_fraud": 6,
+        "privacy_invasion_and_surveillance": 6
+      },
+      "train": {
+        "animal_abuse": 26,
+        "dangerous_behavior": 26,
+        "false_information": 26,
+        "financial_and_academic_fraud": 25,
+        "privacy_invasion_and_surveillance": 25
+      }
+    },
+    "evaluation_images_checked": 589,
+    "selected_evaluation_image_overlap": 0,
+    "train_validation_image_overlap": 0,
+    "excluded": {
+      "duplicate_selected_image": 1
+    },
+    "max_selected_tokens": 1835,
+    "max_length": 2048,
+    "file_sha256": {
+      "validation": "5987b0f2d18114cf896279124a443fea38d7bcc5f4d18e9a84db93ae28830042",
+      "train": "1ff009e8bd99fe7e40a6bf836f228db40b32169fa93170e3d209038658f70767"
+    },
+    "scope": "Five source categories only; exact decoded-image overlap, not semantic dedup"
+  }
+}

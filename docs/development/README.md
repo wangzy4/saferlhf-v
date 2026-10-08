@@ -6,12 +6,14 @@
 
 - [当前复现进展](../REPRODUCTION_ZH.md)
 - [推理实验结论](../RESULTS_LLAVA_ZH.md)
+- [第一轮真实 RM/CM 训练结果](../RESULTS_RM_CM_ZH.md)
 - [训练阶段结论](../TRAINING_AUDIT_ZH.md)
 - [偏好一致率定义与下一步建议](../METRICS_ZH.md)
 
 ## 工程与方法记录
 
 - [推理环境与完整方法](INFERENCE_ZH.md)
+- [RM/CM 训练方法、配置差异及资源规划](RM_CM_TRAINING_ZH.md)
 - [训练链路详细审计](TRAINING_AUDIT_ZH.md)
 - [技术复现路线](REPRODUCTION_ZH.md)
 - [详细指标、性能口径与历史结果排除说明](RESULTS_LLAVA_DETAIL_ZH.md)
