@@ -65,28 +65,57 @@ RM/CM 各单张 H20 并行，不占满八卡。
 
 **当前 LoRA 与该表不是可比实验。** 更新方式、训练量、验证协议不同，作者实际完整配置与原始评分 checkpoint 仍未取得。即使 CM 80.08% 在数字上接近论文 80.4%，也不能说只差 0.32 个百分点；更不能推断最终策略论文胜率。
 
-## 下一步：少量全参数试训
+## 小规模全参数试训：v1 记录与修正轮
 
-先使用独立的新 train-split 样本：**20 类、256 条训练＋64 条内部验证、3 epochs**。每模型使用 4 张空闲 H20、ZeRO-2，RM/CM 串行；不启动 RL 或 judge。
+已执行独立新样本的 **20 类、256 条训练＋64 条内部验证、3 epochs**，4 卡 ZeRO-2，RM/CM 串行，不启动 RL 或 judge。训练完整语言骨干、投影层和评分头，冻结视觉及未连接标量损失的词表头。全局 batch 16、lr 3e-5、betas 0.9/0.95、weight decay 0、warmup 3%、regularization 0.001；RM constant_with_warmup、CM cosine。
 
-- 不用 LoRA；训练完整语言骨干、投影层与评分头，冻结视觉。词表输出头不参与标量评分损失，显式冻结，等价于零 weight decay 下不更新其参数。
-- 接近公开配置：每卡 4 对、全局 16 对、lr 3e-5、betas 0.9/0.95、weight decay 0、warmup 3%、BF16、regularization 0.001、CM scale 1。RM 使用 constant_with_warmup，CM 使用 cosine。
-- 优先验证真实多卡 FusedAdam 更新、完整模型与优化器 checkpoint 保存恢复，再做真实 7B 试训。使用原生 score architecture/loss 的独立 runner，不声称已恢复作者实际运行。
+### v1：有学习信号，但加载认证存在缺口
 
-### 启动前预算（不是实测）
+训练源版本 `08d3537aa488be6959898695fb2b7dbd1288fdbc`，两模型各完成 48 次优化更新：
 
-| 项目 | 保守预算 |
-| --- | --- |
-| GPU | 4 × H20，RM/CM 串行，不预留整机 |
-| 单卡显存 | 约 40–75 GiB，2048 token 上限、梯度检查点；实际以预检为准 |
-| 单模型时间 | 约 10–30 分钟，首次编译/加载/保存可能额外延长 |
-| 两模型磁盘 | 约 250–300 GiB，含完整模型及可恢复的优化器 checkpoint |
+| 内部验证结果 | RM | CM |
+| --- | ---: | ---: |
+| 最终排序准确率 | 82.81%（53/64） | 65.63%（42/64） |
+| 最终训练集排序准确率 | 99.22%（254/256） | 未生成最终 summary |
+| CM 零阈值安全标签准确率 | — | 78.91%（101/128） |
+| CM response-level AUC（训练执行路径） | — | 0.860 |
+| 原 runner 完成标记 | DONE（只抽查一对重载分数） | 无 DONE；独立模型重载检查失败 |
 
-样本少只减少步数，**不会按比例减少全参数优化器状态显存与 checkpoint 体积**。这些预算不能用于 RL：actor/reference/RM/CM/critics 同时在场，会是另一套资源开销。
+**这些不是已认证的部署产物。** RM 虽通过原来的单对抽查，但排查 CM 时发现两者共享的执行差异：DeepSpeed 的 BF16 转换还舍入了一个不随权重保存的位置编码 buffer；独立 HF 加载时该 buffer 为 FP32。一对抽查不足以认证完整重载协议。v1 模型与失败产物保留，不放宽容差，不冒充完整成功。
 
-评分质量与加载稳定性通过后再短程 RL；最终策略论文评测仍未复现。本地 judge 继续暂停，不调用付费 judge API。
+诊断确认保存的 HF/DeepSpeed **所有权重键及 tensor 均完全一致**。CM 第一对分数差 0.0078125；只对齐该 buffer 后完全一致。64 对诊断中，两种执行路径最大分数差 0.017578125，虽本轮排序计数和零阈值计数恰好不变，仍不能据此绕过加载合同。工程细节见 [开发记录](development/RM_CM_TRAINING_ZH.md)。
+
+### 实测资源（v1 RM）
+
+| 项目 | 实测 |
+| --- | ---: |
+| GPU | 4 × H20，RM/CM 串行 |
+| 纯训练累计用时 | 4.78 分钟 |
+| 加载、评估、保存与原检查总用时 | 9.01 分钟 |
+| 各 rank 最高 allocated / reserved | 57.91 / 64.51 GiB |
+| 完整模型 | 14,127,541,846 bytes |
+| DeepSpeed checkpoint | 94,540,146,055 bytes |
+| 模型＋可恢复状态 | 约 101 GiB / 模型 |
+
+峰值包含保存/恢复/独立加载，不是纯训练阶段的峰值；总用时也不代表修正后扩展验证的用时。样本少减少步数，**不会按比例减少全参数优化器状态显存与 checkpoint 体积**。RL 的多模型同时驻留需要另一套资源测量。
+
+### 修正轮：先训完当前规模，再适度扩大
+
+修正训练端的位置编码 buffer 精度，保持其与独立 HF 初始化一致；不改变预定数据、epoch、优化器或损失，不依据验证分数挑选 epoch。新 run 名重训，不覆盖 v1。重载检查扩展到全部 64 对、相同分布式 batch 组成，并核对排序及 CM 零阈值判定；继续验证 optimizer moments 和真实恢复后更新。
+
+先完成这个规模的 RM/CM，再适度扩大训练和冻结内部验证。作者最终 RM/CM 尚未取得，不能直接做作者评分 checkpoint 对比；以后训练出策略才比较作者公开最终策略与我们的策略，同样本、同生成设置，评分诊断不能替代论文策略胜率。本地 judge 继续暂停，不调用付费 API。
+
+## Hugging Face 产物保存
+
+第二轮 LoRA 已保存到私有模型仓库，并核对远端权重 SHA256、配置/processor/聚合结果 SHA256：
+
+- [RM adapter](https://huggingface.co/wangzyuan/llava-1.5-7b-rm-1024-lora-r8)，revision `048bb56548420fbdb4cdf7a367aba00762f2c038`。
+- [CM adapter](https://huggingface.co/wangzyuan/llava-1.5-7b-cm-1024-lora-r8)，revision `40f42809e9ee504c4526986115f3ce884a48fdf0`。
+
+需要对应账号权限访问；adapter 依赖固定基座及本项目 native score wrapper，不是可直接聊天的策略。上传仅包含 safetensors、processor/tokenizer、净化配置、聚合结果、许可说明及哈希清单，不含训练样本、逐样本风险文本、机器信息或凭证。优化器 checkpoint 保留数据盘，HF 当前不是完整续训备份。全参数 v1 暂不上传为有效产物；修正轮通过扩展检查后再发布。
 
 - [整体进展](REPRODUCTION_ZH.md)
 - [方法与开发记录](development/RM_CM_TRAINING_ZH.md)
 - [第二轮权威聚合结果](results/rm-cm-20cat-1024-256-lora-r8.json)
 - [第一轮权威聚合结果](results/rm-cm-128-32-lora-r8.json)
+- [全参数 v1 聚合记录（旧精度协议未认证）](results/rm-cm-full-256-64-zero2-v1.json)

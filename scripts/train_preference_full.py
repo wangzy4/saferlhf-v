@@ -30,7 +30,9 @@ from safe_rlhf_v.models.llava import AccustomedLlavaRewardModel
 from safe_rlhf_v.utils.preference_training import (
     binary_cost_diagnostics, image_from_value, preference_loss, ranking_diagnostics, response_text,
 )
-from safe_rlhf_v.utils.preference_distributed import configure_full_score_training, score_deepspeed_config
+from safe_rlhf_v.utils.preference_distributed import (
+    configure_full_score_training, score_deepspeed_config, restore_llama_rope_fp32,
+)
 from safe_rlhf_v.utils.processors import configure_llava_processor
 from train_preference_smoke import load_base, WEIGHT_HASHES
 
@@ -133,6 +135,7 @@ def main():
     ds_config = score_deepspeed_config(world, args.batch_pairs)
     engine, optimizer, _, scheduler = deepspeed.initialize(model=model, optimizer=optimizer,
                                                           lr_scheduler=scheduler, config=ds_config)
+    rotary_precision = restore_llama_rope_fp32(engine.module)
     del model, trainable
     if rank == 0:
         (run / 'loading.json').write_text(json.dumps(loading, indent=2))
@@ -165,7 +168,7 @@ def main():
         return preference_loss(scores, [int(r[field]) for r in batch], args.kind, ratings)[0]
 
     @torch.no_grad()
-    def evaluate(all_rows):
+    def evaluate(all_rows, return_scores=False):
         engine.eval()
         local_results = []
         indices = list(range(rank, len(all_rows), world))
@@ -198,7 +201,7 @@ def main():
         if args.kind == 'cm':
             unsafe = torch.tensor([[r[f'is_response_{i}_safe'] == 'no' for i in (1, 2)] for r in all_rows])
             result.update(binary_cost_diagnostics(values, unsafe))
-        return result
+        return (result, values) if return_scores else result
 
     history = [{'epoch': 0, 'validation': evaluate(rows['validation'])}]
     def save_history():
@@ -238,7 +241,8 @@ def main():
                 with (run / 'steps.jsonl').open('a') as handle:
                     handle.write(json.dumps(event) + '\n')
                 print(json.dumps(event), flush=True)
-        history.append({'epoch': epoch, 'validation': evaluate(rows['validation'])})
+        validation, expected_validation_scores = evaluate(rows['validation'], return_scores=True)
+        history.append({'epoch': epoch, 'validation': validation})
         save_history()
     final_train = evaluate(rows['train'])
     engine.eval()
@@ -287,7 +291,7 @@ def main():
     if not torch.equal(expected, restored):
         raise RuntimeError('Checkpoint restore score mismatch')
     # Fresh independent score architecture reload on rank zero, while other ranks wait.
-    fresh_difference, fresh_info = None, None
+    fresh_difference, fresh_info, validation_reload_difference = None, None, None
     if rank == 0:
         fresh, fresh_info = AccustomedLlavaRewardModel.from_pretrained(
             model_dir, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True,
@@ -302,6 +306,23 @@ def main():
         fresh_difference = (expected - actual).abs().max().item()
         if not torch.allclose(expected, actual, atol=1e-3, rtol=1e-3):
             raise RuntimeError('Fresh full-model reload score mismatch')
+        # Same batch composition as the distributed evaluator, not different padding.
+        actual_validation_scores = torch.empty_like(expected_validation_scores)
+        with torch.no_grad():
+            for partition in range(world):
+                indices = list(range(partition, len(rows['validation']), world))
+                for offset in range(0, len(indices), args.batch_pairs):
+                    chosen = indices[offset:offset + args.batch_pairs]
+                    batch = [rows['validation'][i] for i in chosen]
+                    actual_validation_scores[chosen] = scores_for(batch, fresh).cpu()
+        validation_reload_difference = (expected_validation_scores - actual_validation_scores).abs().max().item()
+        if not torch.allclose(expected_validation_scores, actual_validation_scores, atol=1e-3, rtol=1e-3):
+            raise RuntimeError('Fresh full-validation reload score mismatch')
+        if not torch.equal(expected_validation_scores[:, 0] > expected_validation_scores[:, 1],
+                           actual_validation_scores[:, 0] > actual_validation_scores[:, 1]):
+            raise RuntimeError('Fresh full-validation reload ranking mismatch')
+        if args.kind == 'cm' and not torch.equal(expected_validation_scores > 0, actual_validation_scores > 0):
+            raise RuntimeError('Fresh full-validation reload safety threshold mismatch')
         del fresh
         gc.collect()
         torch.cuda.empty_cache()
@@ -336,6 +357,10 @@ def main():
                    'total_seconds': time.perf_counter() - started,
                    'checkpoint_restore_score_difference': checkpoint_difference,
                    'fresh_model_reload_score_difference': fresh_difference,
+                   'fresh_reload_validation_max_score_difference': validation_reload_difference,
+                   'fresh_reload_validation_pairs': len(rows['validation']),
+                   'fresh_reload_validation_ranking_equal': True,
+                   'rotary_buffer_precision': rotary_precision,
                    'optimizer_moment_restore_verified': True, 'post_restore_update_verified': True,
                    'resume_check_updates_not_saved': 1,
                    'dataset_sha256': manifest['file_sha256'], 'data_revision': manifest['revision'],

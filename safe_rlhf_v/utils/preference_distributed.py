@@ -36,3 +36,32 @@ def configure_full_score_training(model):
     model.model.config.use_cache = False
     model.model.language_model.config.use_cache = False
     return [parameter for parameter in model.parameters() if parameter.requires_grad]
+
+
+def restore_llama_rope_fp32(model):
+    """Undo DeepSpeed's blanket BF16 cast of nonpersistent rotary frequencies.
+
+    ``inv_freq`` is absent from state_dict/safetensors. A BF16 conversion rounds
+    its values permanently; simply calling .float() cannot recover them. Rebuild
+    on CPU with the native Transformers function, as in a fresh HF load, then
+    move the FP32 buffer to its original device. Only default Llama RoPE is
+    certified here; extended/dynamic schemes need their own validation.
+    """
+    import torch
+    from transformers.models.llama.modeling_llama import LlamaRotaryEmbedding
+
+    count = 0
+    for module in model.modules():
+        if isinstance(module, LlamaRotaryEmbedding):
+            if module.rope_type != 'default':
+                raise ValueError('Only default Llama RoPE has been certified')
+            device = module.inv_freq.device
+            inv_freq, scaling = module.rope_init_fn(module.config, device=torch.device('cpu'))
+            module.register_buffer('inv_freq', inv_freq.to(device=device, dtype=torch.float32),
+                                   persistent=False)
+            module.original_inv_freq = module.inv_freq
+            module.attention_scaling = scaling
+            count += 1
+    if count != 1:
+        raise ValueError('Expected exactly one native Llama rotary module')
+    return {'modules': count, 'dtype': 'float32', 'reconstructed_on': 'cpu', 'persistent': False}

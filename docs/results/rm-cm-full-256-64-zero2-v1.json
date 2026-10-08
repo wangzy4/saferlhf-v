@@ -1,0 +1,674 @@
+{
+  "status": "legacy_rope_precision_contract_not_certified",
+  "training_commit": "08d3537aa488be6959898695fb2b7dbd1288fdbc",
+  "run_name": "rm-cm-full-20cat-256-64-zero2-v1",
+  "author_checkpoint": false,
+  "rl_or_judge_evaluation": false,
+  "rm_original_protocol_summary": {
+    "kind": "rm",
+    "mode": "full_language_backbone_projector_score",
+    "author_checkpoint": false,
+    "paper_reproduction_complete": false,
+    "n_train": 256,
+    "n_validation": 64,
+    "epochs": 3,
+    "optimizer_steps": 48,
+    "world_size": 4,
+    "batch_pairs_per_gpu": 4,
+    "global_batch_pairs": 16,
+    "lr": 3e-05,
+    "weight_decay": 0.0,
+    "betas": [
+      0.9,
+      0.95
+    ],
+    "seed": 42,
+    "scheduler": "constant_with_warmup",
+    "warmup_steps": 1,
+    "gradient_checkpointing": "non_reentrant",
+    "zero_stage": 2,
+    "trainable_parameters": 6628589568,
+    "total_parameters": 7063431168,
+    "initial_validation": {
+      "n": 64,
+      "loss": 0.7631198279559612,
+      "pairwise_correct": 28,
+      "pairwise_ties": 0,
+      "by_category": {
+        "animal_abuse": {
+          "n": 4,
+          "correct": 1,
+          "accuracy": 0.25
+        },
+        "dangerous_behavior": {
+          "n": 4,
+          "correct": 1,
+          "accuracy": 0.25
+        },
+        "deception_in_personal_relationships": {
+          "n": 4,
+          "correct": 2,
+          "accuracy": 0.5
+        },
+        "discriminatory_depictions": {
+          "n": 4,
+          "correct": 2,
+          "accuracy": 0.5
+        },
+        "environmental_damage": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "false_information": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "financial_and_academic_fraud": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "hacking_or_digital_crime": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "harmful_health_content": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "horror_and_gore": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "identity_misuse_and_impersonation": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "insulting_and_harassing_behavior": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "pornographic_content": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "privacy_invasion_and_surveillance": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "psychological_harm_and_manipulation": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "psychological_horror_and_dark_themes": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "sensitive_information_in_key_areas": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        },
+        "sexual_crimes": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "terrorism_or_extremism": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "violence_and_physical_harm": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        }
+      },
+      "pairwise_accuracy": 0.4375
+    },
+    "final_validation": {
+      "n": 64,
+      "loss": 0.7171612932579592,
+      "pairwise_correct": 53,
+      "pairwise_ties": 1,
+      "by_category": {
+        "animal_abuse": {
+          "n": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "dangerous_behavior": {
+          "n": 4,
+          "correct": 2,
+          "accuracy": 0.5
+        },
+        "deception_in_personal_relationships": {
+          "n": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "discriminatory_depictions": {
+          "n": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "environmental_damage": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "false_information": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "financial_and_academic_fraud": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "hacking_or_digital_crime": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "harmful_health_content": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "horror_and_gore": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "identity_misuse_and_impersonation": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "insulting_and_harassing_behavior": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "pornographic_content": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "privacy_invasion_and_surveillance": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "psychological_harm_and_manipulation": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "psychological_horror_and_dark_themes": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "sensitive_information_in_key_areas": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "sexual_crimes": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "terrorism_or_extremism": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "violence_and_physical_harm": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        }
+      },
+      "pairwise_accuracy": 0.828125
+    },
+    "final_train": {
+      "n": 256,
+      "loss": 0.0531870785926003,
+      "pairwise_correct": 254,
+      "pairwise_ties": 0,
+      "by_category": {
+        "animal_abuse": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "dangerous_behavior": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "deception_in_personal_relationships": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "discriminatory_depictions": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "environmental_damage": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "false_information": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "financial_and_academic_fraud": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "hacking_or_digital_crime": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "harmful_health_content": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "horror_and_gore": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "identity_misuse_and_impersonation": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "insulting_and_harassing_behavior": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "pornographic_content": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "privacy_invasion_and_surveillance": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "psychological_harm_and_manipulation": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "psychological_horror_and_dark_themes": {
+          "n": 13,
+          "correct": 13,
+          "accuracy": 1.0
+        },
+        "sensitive_information_in_key_areas": {
+          "n": 12,
+          "correct": 11,
+          "accuracy": 0.9166666865348816
+        },
+        "sexual_crimes": {
+          "n": 12,
+          "correct": 12,
+          "accuracy": 1.0
+        },
+        "terrorism_or_extremism": {
+          "n": 12,
+          "correct": 12,
+          "accuracy": 1.0
+        },
+        "violence_and_physical_harm": {
+          "n": 12,
+          "correct": 11,
+          "accuracy": 0.9166666865348816
+        }
+      },
+      "pairwise_accuracy": 0.9921875
+    },
+    "per_rank_resources": [
+      {
+        "rank": 0,
+        "allocated_gib": 57.90911817550659,
+        "reserved_gib": 64.505859375,
+        "training_seconds": 286.68957859976217
+      },
+      {
+        "rank": 1,
+        "allocated_gib": 56.53348350524902,
+        "reserved_gib": 59.572265625,
+        "training_seconds": 286.73761782539077
+      },
+      {
+        "rank": 2,
+        "allocated_gib": 56.53348350524902,
+        "reserved_gib": 59.572265625,
+        "training_seconds": 286.73725922149606
+      },
+      {
+        "rank": 3,
+        "allocated_gib": 56.4498348236084,
+        "reserved_gib": 59.486328125,
+        "training_seconds": 286.73763192864135
+      }
+    ],
+    "total_seconds": 540.5234353221022,
+    "checkpoint_restore_score_difference": 0.0,
+    "fresh_model_reload_score_difference": 0.0,
+    "optimizer_moment_restore_verified": true,
+    "post_restore_update_verified": true,
+    "resume_check_updates_not_saved": 1,
+    "dataset_sha256": {
+      "validation": "2a93b2affecce49517062c0c69aa9cf360cd6e6cef5646e30d21411e2166d783",
+      "train": "d88e2fd231b402780b8fec2611a84472e0284582e93bbd2efcc8edfc32903548"
+    },
+    "data_revision": "ee19041205c720c0faea575de563de8a6a8f9094",
+    "base_revision": "b234b804b114d9e37bb655e11cbbb5f5e971b7a9",
+    "processor_revision": "b234b804b114d9e37bb655e11cbbb5f5e971b7a9",
+    "torch": "2.5.1+cu124",
+    "transformers": "4.48.3",
+    "deepspeed": "0.16.2",
+    "code_sha256": {
+      "scripts/train_preference_full.py": "da801a5b49e6970350dd2ad7dcfc33b60251a3c61f454ffacd48590c8ad435f8",
+      "safe_rlhf_v/utils/preference_distributed.py": "509d885f4151a8be13b2d135ea7db4a4ecc4c3437c4a044b2bd535fc06171424",
+      "safe_rlhf_v/utils/preference_training.py": "77f87f07ab2a0f0842795b29b64b51b3dd3b737e8d47d22c492b70152ad96932",
+      "safe_rlhf_v/models/llava.py": "a267c27d1058a7f3a7bb9b2ad9b2381b1f956aebe05abe6a4731d289a8a998e9"
+    },
+    "limitations": "Small internal train-split validation, one seed; not recovered author run or final-policy evaluation; ZeRO-2 preflight, frozen unused vocabulary head; logits_to_keep=1 leaves hidden-state scoring unchanged; resource peaks include fresh-model reload"
+  },
+  "rm_validity": "Original DONE relied on one pair; nonpersistent buffer precision differs from fresh HF; not certified for deployment",
+  "cm": {
+    "status": "failed_after_training_at_fresh_reload",
+    "epochs_completed": 3,
+    "optimizer_steps": 48,
+    "n_train": 256,
+    "n_validation": 64,
+    "initial_validation": {
+      "n": 64,
+      "loss": 2.5670646503567696,
+      "pairwise_correct": 40,
+      "pairwise_ties": 0,
+      "by_category": {
+        "animal_abuse": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "dangerous_behavior": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "deception_in_personal_relationships": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "discriminatory_depictions": {
+          "n": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "environmental_damage": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "false_information": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "financial_and_academic_fraud": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "hacking_or_digital_crime": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "harmful_health_content": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "horror_and_gore": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "identity_misuse_and_impersonation": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "insulting_and_harassing_behavior": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "pornographic_content": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "privacy_invasion_and_surveillance": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "psychological_harm_and_manipulation": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "psychological_horror_and_dark_themes": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "sensitive_information_in_key_areas": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "sexual_crimes": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "terrorism_or_extremism": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "violence_and_physical_harm": {
+          "n": 3,
+          "correct": 0,
+          "accuracy": 0.0
+        }
+      },
+      "pairwise_accuracy": 0.625,
+      "n_responses": 128,
+      "n_unsafe": 62,
+      "safety_label_accuracy_at_zero": 0.515625,
+      "balanced_safety_label_accuracy_at_zero": 0.5039100646972656,
+      "majority_class_baseline": 0.515625,
+      "true_unsafe": 8,
+      "false_unsafe": 8,
+      "true_safe": 58,
+      "false_safe": 54,
+      "unsafe_cost_mean": -0.5545850992202759,
+      "safe_cost_mean": -0.5830646753311157,
+      "response_safety_auc": 0.5218719244003296
+    },
+    "final_validation": {
+      "n": 64,
+      "loss": 1.6393075175583363,
+      "pairwise_correct": 42,
+      "pairwise_ties": 0,
+      "by_category": {
+        "animal_abuse": {
+          "n": 4,
+          "correct": 2,
+          "accuracy": 0.5
+        },
+        "dangerous_behavior": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "deception_in_personal_relationships": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "discriminatory_depictions": {
+          "n": 4,
+          "correct": 3,
+          "accuracy": 0.75
+        },
+        "environmental_damage": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "false_information": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "financial_and_academic_fraud": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "hacking_or_digital_crime": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "harmful_health_content": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "horror_and_gore": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "identity_misuse_and_impersonation": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "insulting_and_harassing_behavior": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "pornographic_content": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "privacy_invasion_and_surveillance": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "psychological_harm_and_manipulation": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "psychological_horror_and_dark_themes": {
+          "n": 3,
+          "correct": 1,
+          "accuracy": 0.3333333432674408
+        },
+        "sensitive_information_in_key_areas": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "sexual_crimes": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "terrorism_or_extremism": {
+          "n": 3,
+          "correct": 2,
+          "accuracy": 0.6666666865348816
+        },
+        "violence_and_physical_harm": {
+          "n": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        }
+      },
+      "pairwise_accuracy": 0.65625,
+      "n_responses": 128,
+      "n_unsafe": 62,
+      "safety_label_accuracy_at_zero": 0.7890625,
+      "balanced_safety_label_accuracy_at_zero": 0.7881231606006622,
+      "majority_class_baseline": 0.515625,
+      "true_unsafe": 47,
+      "false_unsafe": 12,
+      "true_safe": 54,
+      "false_safe": 15,
+      "unsafe_cost_mean": 0.8879788517951965,
+      "safe_cost_mean": -0.8799604773521423,
+      "response_safety_auc": 0.8596041202545166
+    },
+    "training_seconds": 286.58925245143473,
+    "summary_written": false,
+    "done_written": false,
+    "model_and_deepspeed_checkpoint_saved": true
+  },
+  "diagnosis": {
+    "all_saved_hf_ds_keys_and_tensors_equal": true,
+    "different_buffer": "model.language_model.model.rotary_emb.inv_freq",
+    "hf_buffer_dtype": "float32",
+    "legacy_training_buffer_dtype": "bfloat16",
+    "nonpersistent": true,
+    "initial_probe_max_score_difference": 0.0078125,
+    "validation_max_score_difference": 0.017578125,
+    "same_probe_scores_after_matching_only_buffer": true
+  },
+  "limitations": "Internal train-split validation; one seed; small sample; not comparable with LoRA validation or paper tables; repair rerun preserves prescribed configuration"
+}

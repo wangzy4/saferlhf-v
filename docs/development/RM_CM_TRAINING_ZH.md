@@ -1,6 +1,6 @@
 # RM / CM 真实试训：方法与资源规划
 
-本页记录工程细节；读者结论见 [第一轮 RM/CM 结果](../RESULTS_RM_CM_ZH.md)。本轮是独立 PyTorch/PEFT 路径，不代表原始 DeepSpeed trainer 已通过。
+本页记录工程细节；读者结论见 [RM/CM 结果](../RESULTS_RM_CM_ZH.md)。LoRA 使用独立 PyTorch/PEFT 路径，全参数使用 native score/loss 的独立 DeepSpeed ZeRO-2 runner；不代表原始 trainer 入口已全部通过。
 
 ## 第一轮固定配置
 
@@ -106,7 +106,7 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 - 完整 BF16 checkpoint 每个约十余 GiB，optimizer 状态另占数十 GiB；预留每模型约 100–200 GiB 运行空间是规划预算，不是产物实测。
 - RM/CM 全参数试跑建议先串行，避免一次占满八张卡；必须当时重新检查资源。
 
-完整 trainer 已能在独立环境导入；原生 score class 在随机 tiny 架构上已经通过 4 卡 NCCL/ZeRO-2/FusedAdam 更新及 checkpoint 恢复预检，**不等于真实全参数 7B 已成功或原始框架入口全部认证**。
+完整 trainer 已能在独立环境导入；原生 score class 已通过随机 tiny 的 4 卡 NCCL/ZeRO-2/FusedAdam 更新及恢复。v1 真实 7B 已完成优化更新并实测资源，但发现非持久 RoPE buffer 的保存/重载合同缺口，不能把 tiny 或单对抽查当成完整 7B 加载认证，也不是原始入口全部认证。
 
 ### 第二轮：已完成
 
@@ -125,7 +125,7 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 - 隐藏全部 CUDA 设备，使用 DeepSpeed 原始 FusedAdam 源码和编译 flags 针对 H20 的 `sm_90 / compute_90` 交叉编译，扩展构建与导入通过，缓存全部在数据盘。
 - DeepSpeed 0.16.2 原生 JIT 在无可见 GPU 时忽略 cross-compile architecture 参数、设备列表为空导致失败；交叉编译改用 torch 扩展 loader。补充 PyTorch CUDA wheels 的 include 路径以提供 cuSPARSE/cuBLAS 等 headers，未修改安装包源码。
 
-**环境导入/交叉编译本身不是完整训练成功。** 后续 tiny 4 卡预检已验证实际 GPU 更新、NCCL、ZeRO-2 分片与恢复；真实 7B 的资源与评分质量仍须单独实测。GPU JIT 通过 `CPATH` 带齐 PyTorch CUDA wheels 的 `nvidia/*/include` 搜索路径，没有修改包源码。
+**环境导入/交叉编译本身不是完整训练成功。** tiny 4 卡验证实际 GPU 更新、NCCL、ZeRO-2 分片与恢复；真实 7B v1 实测见结果页，重载合同正在修正。GPU JIT 通过 `CPATH` 带齐 PyTorch CUDA wheels 的 `nvidia/*/include` 搜索路径，没有修改包源码。
 
 ### 小规模全参数 runner 与多卡预检
 
@@ -138,7 +138,7 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 - `num_logits_to_keep=1` 只减少不用于 loss 的词表 logits，保留完整 hidden states；CPU tiny 测试验证 end scores 完全一致、语言与 projector/head 梯度非零。
 - 全参数数据新建 20 类、256/64，排除两轮 LoRA 用过的全部 1,440 张图像及 evaluation 精确图像重复；与此前训练/验证不混用。
 - 计划 3 epochs、每卡 4 对、全局 16 对、48 updates；FusedAdam lr3e-5 / betas0.9,0.95 / wd0，RM constant_with_warmup、CM cosine，warmup `int(48*0.03)=1`。使用 ZeRO-2 而非上游示例 ZeRO-3；原作者实际配置仍未知。
-- 预算 4×H20 串行 RM/CM，每卡40–75GiB、每模型10–30分钟、两模型250–300GiB磁盘。保存重载可能使峰值高于纯训练；样本数不会减少 optimizer 状态大小。预算待 7B 实测更新。
+- v1 RM 实测：训练 286.69 秒、原检查全程 540.52 秒，各 rank 最高 allocated/reserved 57.91/64.51 GiB；完整模型 14,127,541,846 bytes、DS checkpoint 94,540,146,055 bytes，约 101 GiB/模型。CM 完成 48 updates 后 fresh 模型检查失败，无 DONE/summary。修正轮扩展验证的成本另测，不将 v1 时间当成新协议实测。
 
 运行时额外设置环境内 `CUDA_HOME`、数据盘 `TRITON_CACHE_DIR/TORCH_EXTENSIONS_DIR`、`CPATH` 指向 CUDA wheels include；公开 [环境版本](../../environments/rm-cm-full-pip-freeze.txt)不含机器路径。启动前逐卡检查，空闲快照不构成预留；checkpoint 只重载本轮自产数据，不使用作者远端 pickle。
 
@@ -146,13 +146,32 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 # GPU_LIST 必须是当时空闲、显式选定的四个物理 GPU 编号。
 CUDA_VISIBLE_DEVICES="$GPU_LIST" "$ROOT/envs/rm-cm-full/bin/torchrun" \
   --standalone --nproc_per_node=4 scripts/train_preference_full.py \
-  --root "$ROOT" --run-name rm-cm-full-20cat-256-64-zero2-v1 \
+  --root "$ROOT" --run-name <new-run-name> \
   --dataset-name rm-cm-full-20cat-256-64 --kind rm
 # RM 成功且重新检查资源后，另启 --kind cm；不并行占八卡。
 ```
 
+## 非持久 RoPE buffer 的重载修正
+
+v1 训练源 `08d3537aa488be6959898695fb2b7dbd1288fdbc`。CM 训练 48 updates 完成，但独立 HF 重载未通过原 `atol=rtol=1e-3` 检查。RM 原先只检查一对并通过，后续也不能据此认定完整协议已认证。
+
+1. CPU 对比 HF safetensors 与本轮自产 DS `module`：RM/CM 所有键、dtype、shape、tensor 完全一致，不是权重写坏。
+2. 同一 CM 权重、processor、输入、SDPA 及 BF16 参数，用保存配置 fresh load 和原初始化架构重建，首个配对的最大分数差为 0.0078125（逐样本分数只留私有记录）。
+3. 唯一不同的 buffer 为 `model.language_model.model.rotary_emb.inv_freq`：fresh FP32，DeepSpeed/整体 `.bfloat16()` 后 BF16；频率最大绝对差 0.001223146915435791。它 `persistent=False`，不出现在 state_dict，权重完全一致检查无法发现。
+4. 仅对齐这一 buffer，第一对分数完全一致。64 对 canonical/旧精度执行的最大分数差 0.017578125；排序计数和零阈值计数本轮恰好相同，不代表执行差异可忽略。
+5. 修正 `restore_llama_rope_fp32()` 在 `deepspeed.initialize()` 后，用 Transformers 原生 `rope_init_fn` 在 CPU 重建频率并以 FP32 搬到实际设备，同时同步 `original_inv_freq/attention_scaling`。不能仅 `.float()`，因为 BF16 舍入已经丢失信息。仅认证默认 Llama RoPE，其他 RoPE scheme 拒绝而非静默近似。
+6. 保持原定数据与优化设置，新 run 从固定基座重训；保留 v1，不放宽容差。扩展 fresh 检查到整个内部 validation，同 rank-strided batch 组成，额外检查 preference 排序和 CM 零阈值判定一致。
+
+修正后的 `ds-score-tiny-4gpu-v4-rope-fp32` 已通过：随机 tiny 架构，1,024 train/256 validation、1 epoch、256 updates，4 卡 ZeRO-2/FusedAdam；整个 256 对 fresh 分数最大差 **0**，optimizer moment 恢复和真实 post-restore update 通过。不是 7B 效果证据。CPU 回归额外覆盖 BF16 频率舍入、非持久 buffer、原生重建和 HF 完整保存重载。
+
+## HF 产物导出
+
+`scripts/export_score_artifacts.py` 仅接受 DONE/summary/reload 通过的 run；全参数额外要求 FP32 RoPE 与整个 validation 重载认证，旧单对协议不允许导出。只白名单导出 safetensors、processor/tokenizer、净化配置、聚合结果、许可文件和 SHA256 清单；绝对 base 路径改为固定 HF ID/revision，未知私有内容直接失败，不静默删除。
+
+上传显式 `--upload`，默认私有；只有显式 `--public-on-private-quota` 且确认私有存储配额错误才切公共，授权或网络错误不能触发公开。上传后按 immutable HF commit 核对远端权重 LFS SHA256，并下载 metadata 验证 SHA256，保存 receipt。只归档推理权重，不把 optimizer/RNG 重启合同冒称云端备份。第二轮两个 adapter 已私有归档；全参数 v1 暂不作为有效产物上传。HF OAuth 凭证及机器侧授权实现仅留私有数据缓存，不提交代码库。
+
 ## 检查记录
 
-46 项测试在独立 full 环境、隐藏 CUDA 的 CPU 运行全部通过（无跳过），新增全参数冻结/梯度、词表 logits 裁减评分等价、全局 batch 合约；此前43项包括实际 trainer loss 数值/梯度等价、标签方向、0 rating、真实 tiny score LLaVA 的 LoRA 更新与 adapter 保存重载、cost diagnostics、以及此前训练 mask/critic/rollout 合约。真实 7B 训练和测试证据分别报告。
+新增 RoPE 与产物 privacy/public-fallback 回归后，**50 项测试**在独立 full 环境、隐藏 CUDA 的 CPU 全部通过，无跳过。此前46项覆盖全参数冻结/梯度、词表 logits 裁减评分等价、全局 batch 合约；此前43项包括实际 trainer loss 数值/梯度等价、标签方向、0 rating、真实 tiny score LLaVA 的 LoRA 更新与 adapter 保存重载、cost diagnostics、以及训练 mask/critic/rollout 合约。真实 7B 训练和测试证据分别报告。
 
 没有调用付费 API，没有上传逐样本数据，没有恢复暂停的 judge 下载。第一轮权威聚合见 [结果 JSON](../results/rm-cm-128-32-lora-r8.json)。
