@@ -29,7 +29,8 @@ def download(root, repo, revision, filename, target_dir, workers):
     markers = target.with_name(target.name + '.range-chunks')
     markers.mkdir(exist_ok=True)
     if target.exists():
-        actual = hashlib.file_digest(target.open('rb'), 'sha256').hexdigest()
+        with target.open('rb') as handle:
+            actual = hashlib.file_digest(handle, 'sha256').hexdigest()
         if actual == digest:
             print('Verified existing', filename, flush=True)
             return
@@ -98,6 +99,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', required=True, type=Path)
     parser.add_argument('--workers-per-file', type=int, default=8)
+    parser.add_argument('--safe-workers', type=int, default=0,
+                        help='Optional separate concurrency for the single large policy file')
     args = parser.parse_args()
     manifest = json.loads((args.root / 'assets.json').read_text())
     jobs = [(manifest['base_repo'], manifest['base_revision'],
@@ -105,7 +108,9 @@ def main():
     jobs.append((manifest['safe_repo'], manifest['safe_revision'],
                  'LLaVA_Safe_RLHF-V/pytorch_model.bin', 'models/safe'))
     with ThreadPoolExecutor(max_workers=4) as pool:
-        futures = [pool.submit(download, args.root, *job, args.workers_per_file) for job in jobs]
+        futures = [pool.submit(download, args.root, *job,
+                               args.safe_workers if job[3] == 'models/safe' and args.safe_workers
+                               else args.workers_per_file) for job in jobs]
         for future in futures:
             future.result()
     (args.root / 'logs/assets-ready').touch()
