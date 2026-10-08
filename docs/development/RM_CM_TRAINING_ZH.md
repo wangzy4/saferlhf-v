@@ -106,7 +106,26 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 - 完整 BF16 checkpoint 每个约十余 GiB，optimizer 状态另占数十 GiB；预留每模型约 100–200 GiB 运行空间是规划预算，不是产物实测。
 - RM/CM 全参数试跑建议先串行，避免一次占满八张卡；必须当时重新检查资源。
 
-DeepSpeed、CUDA toolkit/FusedAdam、完整 trainer 导入、多卡通信、保存恢复仍需要独立环境预检。不能把本轮单卡 PyTorch 训练通过说成原始 DeepSpeed pipeline 已复现。
+完整 trainer 已能在独立环境导入，编译器/优化器扩展交叉编译也已通过；GPU 更新、多卡通信、保存恢复和真实全参数训练仍需下一阶段预检。不能把本轮单卡 PyTorch 训练通过说成原始 DeepSpeed pipeline 已复现。
+
+### 第二轮：已启动、未完成
+
+- `rm-cm-20cat-1024-256-lora-r8-v1`，启动代码 `9abc235299a69074c8310ab6fad42a6de7fab951`。
+- 数据已准备：全部 20 类、1,024 条训练＋256 条内部验证，seed 42，最长所选 1,953 token。
+- 扫描全部源 train，精确图像排除统计：与 evaluation 重复 2 行、与第一轮 160 张已用图像重复 176 行；取样时另跳过 3 条重复图像。新的两个 split 互不重叠，也不与第一轮或 evaluation 精确图像重叠。
+- RM/CM 各单 GPU，从固定基座重新训练，同第一轮优化配置；训练 loss 与梯度检查正常。**尚无最终结果，不据中间 loss 宣称 CM 改进。**
+
+### 独立全参数训练环境：前置检查进展
+
+已建立独立 `rm-cm-full` 环境，不改 inference/smoke/其他项目环境：
+
+- 保持 torch 2.5.1+cu124 / Transformers 4.48.3；增加 DeepSpeed 0.16.2、diffusers 0.32.2、torchaudio 2.5.1+cu124、librosa 0.10.2.post1、tensorboard 2.18.0、wandb 0.19.1、scipy 1.15.1、rich 13.9.4、OpenCV headless 4.10.0.84 等当前导入所需依赖；`pip check` 通过。
+- 原始 `text_image_to_text.rm.RMTrainer / cm.CMTrainer` **真实导入通过**，43 项 CPU 测试无跳过通过。没有启用外部日志上传。
+- 安装环境内 CUDA nvcc 12.4.131、cudart-dev / cccl 12.4.127；不安装系统驱动、不改系统 toolkit。
+- 隐藏全部 CUDA 设备，使用 DeepSpeed 原始 FusedAdam 源码和编译 flags 针对 H20 的 `sm_90 / compute_90` 交叉编译，扩展构建与导入通过，缓存全部在数据盘。
+- DeepSpeed 0.16.2 原生 JIT 在无可见 GPU 时忽略 cross-compile architecture 参数、设备列表为空导致失败；交叉编译改用 torch 扩展 loader。补充 PyTorch CUDA wheels 的 include 路径以提供 cuSPARSE/cuBLAS 等 headers，未修改安装包源码。
+
+**以上不是 GPU 优化器更新或完整训练成功。** 真正的 FusedAdam GPU step、DeepSpeed 分片、多卡通信、全参数 7B 前后向、保存恢复仍待验证。后续 GPU JIT/运行还需带齐相应 CUDA header 搜索路径，不能把仅交叉编译通过当作原始 trainer 已跑通。
 
 ## 检查记录
 
