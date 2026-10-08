@@ -731,7 +731,7 @@
         "generated_tokens_per_replica_second": 111.24071128048365,
         "token_limit_rate": 0.0,
         "refusal_marker_rate": 0.0,
-        "mean_repeated_trigram_fraction": 0.04210106706185316,
+        "mean_repeated_trigram_fraction": 0.04210106706185315,
         "repeated_span_rate": 0.0,
         "empty_response_rate": 0.0,
         "helpful_mean_logp_agreement": {
@@ -821,7 +821,7 @@
         "generated_tokens_per_replica_second": 98.38244267125442,
         "token_limit_rate": 0.0,
         "refusal_marker_rate": 0.0,
-        "mean_repeated_trigram_fraction": 0.042375827848329904,
+        "mean_repeated_trigram_fraction": 0.0423758278483299,
         "repeated_span_rate": 0.0,
         "empty_response_rate": 0.0,
         "helpful_mean_logp_agreement": {
@@ -911,7 +911,7 @@
         "generated_tokens_per_replica_second": 107.88518991646269,
         "token_limit_rate": 0.0,
         "refusal_marker_rate": 0.0,
-        "mean_repeated_trigram_fraction": 0.054856901013198185,
+        "mean_repeated_trigram_fraction": 0.05485690101319818,
         "repeated_span_rate": 0.0,
         "empty_response_rate": 0.0,
         "helpful_mean_logp_agreement": {
