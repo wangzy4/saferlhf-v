@@ -46,13 +46,19 @@ def load_examples(root, per_category):
     return examples
 
 
-def prompt_for(question):
+def prompt_for(question, processor=None, style='manual'):
+    if style == 'hf':
+        if processor is None or not processor.chat_template:
+            raise RuntimeError('HF prompt style requires the fixed base processor chat template')
+        messages = [{'role': 'user', 'content': [{'type': 'image'},
+                                               {'type': 'text', 'text': question}]}]
+        return processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
     return f'USER: <image>\n{question}\nASSISTANT:'
 
 
-def likelihoods(model, processor, batch):
+def likelihoods(model, processor, batch, prompt_style='manual'):
     """Return per-response summed and mean conditional token log probabilities."""
-    prompts = [prompt_for(item['question']) for item in batch for _ in range(2)]
+    prompts = [prompt_for(item['question'], processor, prompt_style) for item in batch for _ in range(2)]
     images = [item['image'].convert('RGB') for item in batch for _ in range(2)]
     responses = [item[f'response_{r}'] for item in batch for r in (1, 2)]
     texts = [p + ' ' + r + processor.tokenizer.eos_token for p, r in zip(prompts, responses)]
@@ -99,6 +105,7 @@ def main():
     parser.add_argument('--per-category', type=int, default=0)
     parser.add_argument('--batch-size', type=int, default=2)
     parser.add_argument('--max-new-tokens', type=int, default=256)
+    parser.add_argument('--prompt-style', choices=['manual', 'hf'], default='manual')
     parser.add_argument('--skip-likelihood', action='store_true')
     args = parser.parse_args()
     if not 0 <= args.shard < args.num_shards:
@@ -152,7 +159,7 @@ def main():
         for start in range(0, len(selected), args.batch_size):
             batch = selected[start:start + args.batch_size]
             images = [item['image'].convert('RGB') for item in batch]
-            inputs = processor(text=[prompt_for(item['question']) for item in batch],
+            inputs = processor(text=[prompt_for(item['question'], processor, args.prompt_style) for item in batch],
                                images=images, return_tensors='pt', padding=True)
             if (inputs.input_ids == model.config.image_token_index).sum(1).tolist() != [576] * len(batch):
                 raise RuntimeError('Expected exactly 576 image tokens per example')
@@ -167,7 +174,7 @@ def main():
             elapsed = time.perf_counter() - begin
             new_tokens = generated[:, inputs['input_ids'].shape[1]:]
             texts = processor.batch_decode(new_tokens, skip_special_tokens=True)
-            scores = None if args.skip_likelihood else likelihoods(model, processor, batch)
+            scores = None if args.skip_likelihood else likelihoods(model, processor, batch, args.prompt_style)
             for index, (item, image, text, tokens) in enumerate(zip(batch, images, texts, new_tokens)):
                 eos = processor.tokenizer.eos_token_id
                 ids = tokens.tolist()

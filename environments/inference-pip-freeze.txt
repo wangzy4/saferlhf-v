@@ -10,9 +10,9 @@ dill==0.3.8
 filelock==3.32.3
 frozenlist==1.8.0
 fsspec==2024.9.0
-hf-xet @ file:///data/zeyuan/saferlhf-v/tmp/hf_xet-1.2.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=3651fd5bfe0281951b988c0facbe726aa5e347b103a675f49a3fa8144c7968fd
-hf_transfer @ file:///data/zeyuan/saferlhf-v/tmp/hf_transfer-0.1.9-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl#sha256=cdca9bfb89e6f8f281890cc61a8aff2d3cecaff7e1a4d275574d96ca70098557
-huggingface-hub @ file:///data/zeyuan/saferlhf-v/tmp/huggingface_hub-0.36.0-py3-none-any.whl#sha256=7bcc9ad17d5b3f07b57c78e79d527102d08313caa278a641993acddcb894548d
+hf-xet==1.2.0
+hf_transfer==0.1.9
+huggingface-hub==0.36.0
 idna==3.20
 Jinja2==3.1.6
 MarkupSafe==3.0.3
@@ -33,7 +33,7 @@ nvidia-cusparse-cu12==12.3.1.170
 nvidia-nccl-cu12==2.21.5
 nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.4.127
-packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1785888127/work
+packaging==26.3
 pandas==3.0.6
 pillow==11.1.0
 propcache==0.5.4

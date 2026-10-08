@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: bash scripts/run_pair.sh DATA_ROOT RUN_NAME PER_CATEGORY REPLICAS BATCH_SIZE MAX_NEW_TOKENS
+# Usage: bash scripts/run_pair.sh DATA_ROOT RUN_NAME PER_CATEGORY REPLICAS BATCH_SIZE MAX_NEW_TOKENS [PROMPT_STYLE]
 set -euo pipefail
 ROOT="${1:?data root required}"
 RUN="${2:?run name required}"
@@ -7,6 +7,7 @@ PER_CATEGORY="${3:-0}"
 REPLICAS="${4:-4}"
 BATCH_SIZE="${5:-2}"
 MAX_NEW_TOKENS="${6:-256}"
+PROMPT_STYLE="${7:-manual}"
 SCRIPTS="$(cd -- "$(dirname -- "$0")" && pwd)"
 PYTHON="$ROOT/envs/inference/bin/python"
 export HF_HOME="$ROOT/hf-cache" HF_DATASETS_CACHE="$ROOT/hf-cache/datasets" TMPDIR="$ROOT/tmp"
@@ -27,6 +28,7 @@ for model in base safe; do
     CUDA_VISIBLE_DEVICES="$((offset+shard))" "$PYTHON" "$SCRIPTS/infer_llava_pair.py" \
       --root "$ROOT" --run "$RUN" --model "$model" --shard "$shard" --num-shards "$REPLICAS" \
       --per-category "$PER_CATEGORY" --batch-size "$BATCH_SIZE" --max-new-tokens "$MAX_NEW_TOKENS" \
+      --prompt-style "$PROMPT_STYLE" \
       > "$ROOT/runs/$RUN/$model-$shard.log" 2>&1 &
     pids+=("$!")
   done
