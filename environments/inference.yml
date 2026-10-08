@@ -1,0 +1,20 @@
+name: saferlhf-v-inference
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu124
+      - torch==2.5.1+cu124
+      - torchvision==0.20.1+cu124
+      - transformers==4.47.1
+      - accelerate==1.2.1
+      - datasets==3.2.0
+      - huggingface-hub==0.36.0
+      - hf-xet==1.2.0
+      - numpy==1.26.4
+      - pillow==11.1.0
+      - sentencepiece==0.2.0
+      - protobuf==5.29.3
+      - PyYAML==6.0.2

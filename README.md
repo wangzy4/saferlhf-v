@@ -1,6 +1,6 @@
 ## Reproduction workspace
 
-This fork preserves the upstream code. See [复现与改进路线](docs/REPRODUCTION_ZH.md) for the asset inventory, known upstream issues, and staged reproduction plan. Run `python scripts/audit_source.py` for a dependency-free source audit (currently exits nonzero for known upstream CLI parsing defects; no GPU work is performed).
+This fork preserves the upstream algorithm and adds reproduction tooling. See [复现与改进路线](docs/REPRODUCTION_ZH.md) and [推理对比说明](docs/INFERENCE_ZH.md). Run `python scripts/audit_source.py` for dependency-free syntax and CLI regression tests; no GPU work is performed.
 
 ## Introduction
 

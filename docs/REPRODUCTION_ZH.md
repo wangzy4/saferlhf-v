@@ -2,7 +2,7 @@
 
 ## 状态与来源
 
-本仓库 fork 自 https://github.com/saferlhf-v/saferlhf-v ，基线提交 `337d200192e6d0a3c3d61c389f38f964bd2288e3`。当前 bootstrap 分支只增加复现文档和审计工具，不修改训练算法；尚未完成环境安装、权重推理或训练验证。
+本仓库 fork 自 https://github.com/saferlhf-v/saferlhf-v ，基线提交 `337d200192e6d0a3c3d61c389f38f964bd2288e3`。bootstrap 分支只增加复现文档和审计工具。后续 `reproduction/fix-and-inference` 分支已修复训练入口参数处理，并添加独立推理工具；没有修改 Safe RLHF-V 算法。环境与推理进度见 [INFERENCE_ZH.md](INFERENCE_ZH.md)。
 
 - 论文：[Safe RLHF-V: Safe Reinforcement Learning from Multi-modal Human Feedback](https://arxiv.org/abs/2503.17682)，调研版本 v2。
 - 数据：[BeaverTails-V](https://huggingface.co/datasets/saferlhf-v/BeaverTails-V)，调研 revision `ee19041205c720c0faea575de563de8a6a8f9094`。
@@ -41,7 +41,9 @@ keys = [k[2:] for k in unparsed_args[1::2]]
 values = list(unparsed_args[2::2])
 ```
 
-但 `parse_known_args()` 返回的未知参数不包含程序名。输入 `['--actor_model_name_or_path', 'base', '--epochs', '3']` 会得到错误的 key `se`，丢失首个 flag，并错配后续参数。应首先统一实现严格的 key/value 解析，测试空参数、单项、多项、负数、缺失值和未知 key，再逐一修复所有入口；不能直接运行 README 的脚本并相信 CLI 参数生效。
+但 `parse_known_args()` 返回的未知参数不包含程序名。输入 `['--actor_model_name_or_path', 'base', '--epochs', '3']` 会得到错误的 key `se`，丢失首个 flag，并错配后续参数。原实现隐式依赖首项恰好是 DeepSpeed 注入的 `--local_rank=...`，直接调用入口或 launcher 参数位置变化时不可靠。
+
+**已修复**：九个训练入口统一使用 `utils/cli.py`，显式忽略合法 launcher rank，保留首个用户参数，按已有配置类型转换，未知/重复/歧义 key 或缺失值立即报错。回归测试覆盖空参数、单项、多项、负数、嵌套 key、列表和 launcher 参数。此修复不意味着完整训练流程已运行验证。
 
 ### 需要运行验证/进一步修正
 

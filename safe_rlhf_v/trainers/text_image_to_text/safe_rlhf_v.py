@@ -1,5 +1,6 @@
 import itertools
 import argparse
+from safe_rlhf_v.utils.cli import apply_cli_overrides
 import copy
 import os
 import sys
@@ -794,11 +795,7 @@ def main():
     # get custom configs from command line
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     _, unparsed_args = parser.parse_known_args()
-    keys = [k[2:] for k in unparsed_args[1::2]]
-    values = list(unparsed_args[2::2])
-    unparsed_args = dict(zip(keys, values))
-    for k, v in unparsed_args.items():
-        dict_cfgs = update_dict(dict_cfgs, custom_cfgs_to_dict(k, v))
+    dict_cfgs = apply_cli_overrides(dict_cfgs, unparsed_args)
 
     # setup training
     cfgs = dict_to_namedtuple(dict_cfgs)
