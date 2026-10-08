@@ -7,6 +7,7 @@
 - [当前复现进展](../REPRODUCTION_ZH.md)
 - [推理实验结论](../RESULTS_LLAVA_ZH.md)
 - [训练阶段结论](../TRAINING_AUDIT_ZH.md)
+- [偏好一致率定义与下一步建议](../METRICS_ZH.md)
 
 ## 工程与方法记录
 
