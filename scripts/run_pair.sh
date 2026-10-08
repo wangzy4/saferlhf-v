@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Usage: bash scripts/run_pair.sh DATA_ROOT RUN_NAME PER_CATEGORY REPLICAS BATCH_SIZE MAX_NEW_TOKENS [PROMPT_STYLE]
 set -euo pipefail
+# Set GPU_IDS=1,2,3,4,5,6 to select six free GPUs with REPLICAS=3.
 ROOT="${1:?data root required}"
 RUN="${2:?run name required}"
 PER_CATEGORY="${3:-0}"
@@ -16,7 +17,18 @@ export HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1
 [[ -f "$ROOT/logs/assets-ready" ]] || { echo 'Assets are not ready'; exit 1; }
 mkdir -p "$ROOT/runs/$RUN"
 # This launcher refuses occupied GPUs rather than mixing with existing jobs.
-for (( gpu=0; gpu<2*REPLICAS; gpu++ )); do
+if [[ -n "${GPU_IDS:-}" ]]; then
+  IFS=',' read -r -a gpus <<< "$GPU_IDS"
+else
+  gpus=()
+  for (( gpu=0; gpu<2*REPLICAS; gpu++ )); do gpus+=("$gpu"); done
+fi
+[[ "${#gpus[@]}" == "$((2*REPLICAS))" ]] || { echo 'GPU count must equal 2*REPLICAS'; exit 1; }
+declare -A seen=()
+for gpu in "${gpus[@]}"; do
+  [[ "$gpu" =~ ^[0-9]+$ ]] || { echo "Invalid GPU ID: $gpu"; exit 1; }
+  [[ ! -v "seen[$gpu]" ]] || { echo "Duplicate GPU ID: $gpu"; exit 1; }
+  seen[$gpu]=1
   memory="$(nvidia-smi --id="$gpu" --query-gpu=memory.used --format=csv,noheader,nounits)"
   if (( memory > 256 )); then echo "GPU $gpu occupied: $memory MiB"; exit 1; fi
 done
@@ -25,7 +37,7 @@ for model in base safe; do
   offset=0
   [[ "$model" == safe ]] && offset="$REPLICAS"
   for (( shard=0; shard<REPLICAS; shard++ )); do
-    CUDA_VISIBLE_DEVICES="$((offset+shard))" "$PYTHON" "$SCRIPTS/infer_llava_pair.py" \
+    CUDA_VISIBLE_DEVICES="${gpus[offset+shard]}" "$PYTHON" "$SCRIPTS/infer_llava_pair.py" \
       --root "$ROOT" --run "$RUN" --model "$model" --shard "$shard" --num-shards "$REPLICAS" \
       --per-category "$PER_CATEGORY" --batch-size "$BATCH_SIZE" --max-new-tokens "$MAX_NEW_TOKENS" \
       --prompt-style "$PROMPT_STYLE" \
