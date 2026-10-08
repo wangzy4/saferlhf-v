@@ -92,7 +92,7 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 
 - 每模型 1×H20，峰值 allocated 15.36 GiB / reserved 16.68 GiB；任务总用时约 6 分钟，纯训练约 3.85 分钟，两模型可并行。
 - 五类源 train parquet 约 0.74 GiB；全部 20 类约 **3.53 GiB**。第一轮选定数据约 21 MiB，两个 adapter 合计约 194 MiB。环境单独 `du` 约 5.8 GiB，克隆可能共享硬链接，不能据此计算净新增物理空间。
-- 1,024 条规模预计每模型约 30–45 分钟，仅由首轮外推，**不是实测结果**；token 分布、I/O 与共享资源会改变耗时。
+- 第二轮 1,024/256 已实测：每模型纯训练约 31 分钟、加载/评估/保存/重载总计约 42 分钟；峰值 allocated/reserved 15.47/16.68 GiB。
 
 ### 未测：论文/公开配置方向
 
@@ -106,14 +106,14 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 - 完整 BF16 checkpoint 每个约十余 GiB，optimizer 状态另占数十 GiB；预留每模型约 100–200 GiB 运行空间是规划预算，不是产物实测。
 - RM/CM 全参数试跑建议先串行，避免一次占满八张卡；必须当时重新检查资源。
 
-完整 trainer 已能在独立环境导入，编译器/优化器扩展交叉编译也已通过；GPU 更新、多卡通信、保存恢复和真实全参数训练仍需下一阶段预检。不能把本轮单卡 PyTorch 训练通过说成原始 DeepSpeed pipeline 已复现。
+完整 trainer 已能在独立环境导入；原生 score class 在随机 tiny 架构上已经通过 4 卡 NCCL/ZeRO-2/FusedAdam 更新及 checkpoint 恢复预检，**不等于真实全参数 7B 已成功或原始框架入口全部认证**。
 
-### 第二轮：已启动、未完成
+### 第二轮：已完成
 
 - `rm-cm-20cat-1024-256-lora-r8-v1`，启动代码 `9abc235299a69074c8310ab6fad42a6de7fab951`。
 - 数据已准备：全部 20 类、1,024 条训练＋256 条内部验证，seed 42，最长所选 1,953 token。
 - 扫描全部源 train，精确图像排除统计：与 evaluation 重复 2 行、与第一轮 160 张已用图像重复 176 行；取样时另跳过 3 条重复图像。新的两个 split 互不重叠，也不与第一轮或 evaluation 精确图像重叠。
-- RM/CM 各单 GPU，从固定基座重新训练，同第一轮优化配置；训练 loss 与梯度检查正常。仍在预定 2 epoch 训练中，尚未完成最终评估与保存重载。第 1 个 epoch 内部验证：RM 203/256（79.296875%）；CM 198/256（77.34375%，ties 判错），零阈值安全标签 403/512（78.7109375%）、balanced 77.36589%、AUC 0.8540296、majority 59.375%。不据中间结果选 epoch 或调超参，不将这组内部数据与论文测试协议直接比较。新旧验证集不同，结果差值不是严格规模消融。
+- RM/CM 各单 GPU，从固定基座重新训练，预定 2 epochs 全部完成，不选择第 1 epoch 的 RM 更高值。最终内部验证：RM 201/256（78.515625%）；CM 205/256（80.078125%），零阈值安全标签 412/512（80.46875%）、balanced 79.9089%、AUC 0.882765、majority 59.375%。两模型 fresh-base adapter 重载分数差异均为 0。新旧验证集不同，结果差值不是严格规模消融，未在论文 evaluation 上调参。
 
 ### 独立全参数训练环境：前置检查进展
 
@@ -125,10 +125,34 @@ CUDA_VISIBLE_DEVICES=<one-free-gpu> "$PY" scripts/train_preference_smoke.py \
 - 隐藏全部 CUDA 设备，使用 DeepSpeed 原始 FusedAdam 源码和编译 flags 针对 H20 的 `sm_90 / compute_90` 交叉编译，扩展构建与导入通过，缓存全部在数据盘。
 - DeepSpeed 0.16.2 原生 JIT 在无可见 GPU 时忽略 cross-compile architecture 参数、设备列表为空导致失败；交叉编译改用 torch 扩展 loader。补充 PyTorch CUDA wheels 的 include 路径以提供 cuSPARSE/cuBLAS 等 headers，未修改安装包源码。
 
-**以上不是 GPU 优化器更新或完整训练成功。** 真正的 FusedAdam GPU step、DeepSpeed 分片、多卡通信、全参数 7B 前后向、保存恢复仍待验证。后续 GPU JIT/运行还需带齐相应 CUDA header 搜索路径，不能把仅交叉编译通过当作原始 trainer 已跑通。
+**环境导入/交叉编译本身不是完整训练成功。** 后续 tiny 4 卡预检已验证实际 GPU 更新、NCCL、ZeRO-2 分片与恢复；真实 7B 的资源与评分质量仍须单独实测。GPU JIT 通过 `CPATH` 带齐 PyTorch CUDA wheels 的 `nvidia/*/include` 搜索路径，没有修改包源码。
+
+### 小规模全参数 runner 与多卡预检
+
+新增 `scripts/train_preference_full.py`、`utils/preference_distributed.py`，使用同一 native score class / 上游等价 loss，不使用 LoRA，不是原始框架入口的完整认证。
+
+- 已完成 `ds-score-tiny-4gpu-v2`：4 个物理 GPU、NCCL、ZeRO-2、BF16、FusedAdam、4 次同步更新；随机小架构的检查不是 7B 学习结果。
+- 保存全模型 safetensors 与 DeepSpeed 模型/optimizer/scheduler checkpoint；故意扰动 head 和 optimizer moments 后恢复，检查 head 分数及 moment probes 完全一致；恢复后再做一次真实更新且不覆盖最终保存产物。
+- 独立 fresh model 加载无 missing/unexpected/mismatched/error 或 meta 参数，抽查分数差异 0；checkpoint 恢复分数差异 0。该检查不认证跨 world size、RNG/数据游标恢复或 ZeRO-3。
+- 完整语言骨干＋投影层＋评分头训练，冻结视觉及与标量损失断开的词表输出头；weight decay 0 时后者本来无更新。不认证其他架构或 tied vocabulary head。
+- `num_logits_to_keep=1` 只减少不用于 loss 的词表 logits，保留完整 hidden states；CPU tiny 测试验证 end scores 完全一致、语言与 projector/head 梯度非零。
+- 全参数数据新建 20 类、256/64，排除两轮 LoRA 用过的全部 1,440 张图像及 evaluation 精确图像重复；与此前训练/验证不混用。
+- 计划 3 epochs、每卡 4 对、全局 16 对、48 updates；FusedAdam lr3e-5 / betas0.9,0.95 / wd0，RM constant_with_warmup、CM cosine，warmup `int(48*0.03)=1`。使用 ZeRO-2 而非上游示例 ZeRO-3；原作者实际配置仍未知。
+- 预算 4×H20 串行 RM/CM，每卡40–75GiB、每模型10–30分钟、两模型250–300GiB磁盘。保存重载可能使峰值高于纯训练；样本数不会减少 optimizer 状态大小。预算待 7B 实测更新。
+
+运行时额外设置环境内 `CUDA_HOME`、数据盘 `TRITON_CACHE_DIR/TORCH_EXTENSIONS_DIR`、`CPATH` 指向 CUDA wheels include；公开 [环境版本](../../environments/rm-cm-full-pip-freeze.txt)不含机器路径。启动前逐卡检查，空闲快照不构成预留；checkpoint 只重载本轮自产数据，不使用作者远端 pickle。
+
+```bash
+# GPU_LIST 必须是当时空闲、显式选定的四个物理 GPU 编号。
+CUDA_VISIBLE_DEVICES="$GPU_LIST" "$ROOT/envs/rm-cm-full/bin/torchrun" \
+  --standalone --nproc_per_node=4 scripts/train_preference_full.py \
+  --root "$ROOT" --run-name rm-cm-full-20cat-256-64-zero2-v1 \
+  --dataset-name rm-cm-full-20cat-256-64 --kind rm
+# RM 成功且重新检查资源后，另启 --kind cm；不并行占八卡。
+```
 
 ## 检查记录
 
-43 项测试在独立 smoke 环境、隐藏 CUDA 的 CPU 运行全部通过（无跳过），包括实际 trainer loss 数值/梯度等价、标签方向、0 rating、真实 tiny score LLaVA 的 LoRA 更新与 adapter 保存重载、cost diagnostics、以及此前训练 mask/critic/rollout 合约。真实 7B 训练和测试证据分别报告。
+46 项测试在独立 full 环境、隐藏 CUDA 的 CPU 运行全部通过（无跳过），新增全参数冻结/梯度、词表 logits 裁减评分等价、全局 batch 合约；此前43项包括实际 trainer loss 数值/梯度等价、标签方向、0 rating、真实 tiny score LLaVA 的 LoRA 更新与 adapter 保存重载、cost diagnostics、以及此前训练 mask/critic/rollout 合约。真实 7B 训练和测试证据分别报告。
 
 没有调用付费 API，没有上传逐样本数据，没有恢复暂停的 judge 下载。第一轮权威聚合见 [结果 JSON](../results/rm-cm-128-32-lora-r8.json)。
