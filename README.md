@@ -1,3 +1,7 @@
+## Reproduction workspace
+
+This fork preserves the upstream code. See [复现与改进路线](docs/REPRODUCTION_ZH.md) for the asset inventory, known upstream issues, and staged reproduction plan. Run `python scripts/audit_source.py` for a dependency-free source audit (currently exits nonzero for known upstream CLI parsing defects; no GPU work is performed).
+
 ## Introduction
 
 This project is built on top of the [align-anything](https://github.com/PKU-Alignment/align-anything) framework. We introduce new features through the Safe RLHF-V method, enhancing the safety and performance of RLHF multi-modal training.
