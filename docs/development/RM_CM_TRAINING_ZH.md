@@ -180,7 +180,7 @@ RM训练286.64s/总549.64s，CM训练287.34s/总555.61s；最高allocated61.7745
 
 ## 全参数 1K 扩展及损失诊断
 
-新的`rm-cm-full-20cat-1024-256`固定train内部20类、1024/256，重复排除此前两轮LoRA及全参数256/64的全部图像，排除已用evaluation；不是语义排重。固定3epochs/全局batch16/192updates、warmup5，其余全参数原生loss与优化器设置不改。四卡串行、不启动RL。不同验证集不能当严格规模消融。
+新的`rm-cm-full-20cat-1024-256`已READY，固定train内部20类、1024/256，最长1982tokens；重复排除此前两轮LoRA及全参数256/64的全部1760张图像，排除已用evaluation，所选所有跨划分精确图像重复0。源prior重复2084行/evaluation2行、取样重复跳过6个；不是语义排重。新run `rm-cm-full-20cat-1024-256-zero2-v1`，训练源固定 `957d372c053e6890e9ee9b7efbc85633f2aa19f0`，RM已启动、随后CM串行，训练期不更新源码。固定3epochs/全局batch16/192updates、warmup5，其余全参数原生loss与优化器设置不改。四卡串行、不启动RL。不同验证集不能当严格规模消融。
 
 `preference_score_diagnostics()`只在detached scalar scores的副本上拆解pairwise/absolute/regularization loss与各项score梯度L2，返回detached scalars，不创建模型参数梯度、不修改原loss。逐训练步统计为各rank局部均值（含局部gradient norm的均值，不是全局norm）；参数的真实global grad norm仍单独记录。整split评估的loss诊断用收集scores重新按FP32计算，与训练BF16的逐batch loss可能有舍入差异，字段明确命名`fp32_score_loss_diagnostics`，不据此调参或选epoch。
 
