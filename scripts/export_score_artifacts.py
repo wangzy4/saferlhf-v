@@ -66,6 +66,10 @@ model = AccustomedLlavaRewardModel.from_pretrained(
               f"balanced accuracy: {metric['balanced_safety_label_accuracy_at_zero']:.6f}; "
               f"majority baseline: {metric['majority_class_baseline']:.6f}; "
               f"response AUC: {metric['response_safety_auc']:.6f}.\n" if kind == 'cm' else '')
+    if kind == 'cm' and metric['balanced_safety_label_accuracy_at_zero'] <= 0.5:
+        safety += ('\n**QUALITY FAILED: zero-threshold balanced accuracy is at chance. '
+                   'Do not use this checkpoint for RL, safety gating or deployment. '
+                   'It is archived for research diagnostics only.**\n')
     return f'''---
 license: other
 license_name: llama2-with-training-data-terms

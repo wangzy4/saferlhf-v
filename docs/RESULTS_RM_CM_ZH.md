@@ -99,11 +99,24 @@ RM/CM 各单张 H20 并行，不占满八卡。
 
 峰值包含保存/恢复/独立加载，不是纯训练阶段的峰值；总用时也不代表修正后扩展验证的用时。样本少减少步数，**不会按比例减少全参数优化器状态显存与 checkpoint 体积**。RL 的多模型同时驻留需要另一套资源测量。
 
-### 修正轮：先训完当前规模，再适度扩大
+### 修正轮 v2：工程验收通过，CM 质量未达标
 
-修正训练端的位置编码 buffer 精度，保持其与独立 HF 初始化一致；不改变预定数据、epoch、优化器或损失，不依据验证分数挑选 epoch。新 run 名重训，不覆盖 v1。重载检查扩展到全部 64 对、相同分布式 batch 组成，并核对排序及 CM 零阈值判定；继续验证 optimizer moments 和真实恢复后更新。
+训练源 `ded1afc618e8ea1aa934294d5fff569e52bd460b`，同一 256/64 数据、预定 3 epochs/48 updates，从固定基座重训。新 run 保留 v1、不放宽容差；RoPE 为原生 FP32，重载检查覆盖全部 64 对及相同分布式 batch 组成。两模型 checkpoint 恢复、fresh 重载的最大分数差都为 **0**，完整验证排序一致，CM 零阈值判定一致；optimizer moments 恢复与真实恢复后更新也通过。
 
-先完成这个规模的 RM/CM，再适度扩大训练和冻结内部验证。作者最终 RM/CM 尚未取得，不能直接做作者评分 checkpoint 对比；以后训练出策略才比较作者公开最终策略与我们的策略，同样本、同生成设置，评分诊断不能替代论文策略胜率。本地 judge 继续暂停，不调用付费 API。
+| 内部验证指标 | RM | CM |
+| --- | ---: | ---: |
+| 训练前排序准确率 | 45.31%（29/64） | 60.94%（39/64） |
+| 最终排序准确率 | **85.94%（55/64）** | **56.25%（36/64）** |
+| 最终训练集排序准确率 | 99.22%（254/256） | 50.78%（130/256） |
+| CM 零阈值安全标签准确率 | — | 51.56%（66/128），等于多数类基线 |
+| CM 平衡安全标签准确率 | — | **50.00%** |
+| CM response-level AUC | — | 0.621 |
+
+**RM 有学习信号，但训练拟合很强；CM 质量不合格，不能接 RL。** CM 最终把所有 128 个验证回答都判为安全，其中 62 个有害回答全部漏检；其训练集同样全部判安全。权重保存和可重载不等于模型可用。按预定最后 epoch 报告，不挑中间 epoch；不把 v1 更高的 CM 指标当成选择旧执行精度的理由，也不凭单轮断言精度修正是全部质量变化的原因。
+
+每模型训练约 4.8 分钟，全流程 RM **9.16 分钟**、CM **9.26 分钟**；各 rank 最高 allocated/reserved 为 **61.77/64.51 GiB**，包含扩展的 fresh 验证。v1 的 57.91 GiB allocated 不能代替 v2 峰值。最终权重及优化器体积量级仍约 101 GiB/模型，HF 只存完整推理权重及 metadata。
+
+下一步按用户顺序适度扩大训练（约 1K 量级）与冻结内部验证，重点排查 CM 绝对项、梯度/分数趋势及校准，不直接跳论文规模、不启动 RL。作者最终 RM/CM 尚未取得，不能直接做作者评分 checkpoint 对比；以后训练出策略才比较作者公开最终策略与我们的策略，同样本、同生成设置，评分诊断不能替代论文策略胜率。本地 judge 继续暂停，不调用付费 API。
 
 ## Hugging Face 产物保存
 
@@ -112,10 +125,16 @@ RM/CM 各单张 H20 并行，不占满八卡。
 - [RM adapter](https://huggingface.co/wangzyuan/llava-1.5-7b-rm-1024-lora-r8)，revision `048bb56548420fbdb4cdf7a367aba00762f2c038`。
 - [CM adapter](https://huggingface.co/wangzyuan/llava-1.5-7b-cm-1024-lora-r8)，revision `40f42809e9ee504c4526986115f3ce884a48fdf0`。
 
-需要对应账号权限访问；adapter 依赖固定基座及本项目 native score wrapper，不是可直接聊天的策略。上传仅包含 safetensors、processor/tokenizer、净化配置、聚合结果、许可说明及哈希清单，不含训练样本、逐样本风险文本、机器信息或凭证。优化器 checkpoint 保留数据盘，HF 当前不是完整续训备份。全参数 v1 暂不上传为有效产物；修正轮通过扩展检查后再发布。
+需要对应账号权限访问；adapter 依赖固定基座及本项目 native score wrapper，不是可直接聊天的策略。v2 完整权重也已私有归档并核验远端权重/metadata SHA256：
+
+- [全参数 RM](https://huggingface.co/wangzyuan/llava-1.5-7b-rm-256-full-rope-fp32)，revision `a81d9190da1593b27f09b380ac4c4cc3e85e6014`。
+- [全参数 CM（质量未达标，仅研究存档）](https://huggingface.co/wangzyuan/llava-1.5-7b-cm-256-full-rope-fp32)，revision `7f1dffc0dcbf524d65da18bd68dd89eac6a2714b`（补充显式质量失败警告，权重未变）。
+
+上传仅包含 safetensors、processor/tokenizer、净化配置、聚合结果、许可说明及哈希清单，不含训练样本、逐样本风险文本、机器信息或凭证。优化器 checkpoint 保留数据盘，HF 当前不是完整续训备份。全参数 v1 暂不上传为有效产物；v2 CM 虽已归档仍不适用于 RL 或安全部署。
 
 - [整体进展](REPRODUCTION_ZH.md)
 - [方法与开发记录](development/RM_CM_TRAINING_ZH.md)
 - [第二轮权威聚合结果](results/rm-cm-20cat-1024-256-lora-r8.json)
 - [第一轮权威聚合结果](results/rm-cm-128-32-lora-r8.json)
 - [全参数 v1 聚合记录（旧精度协议未认证）](results/rm-cm-full-256-64-zero2-v1.json)
+- [全参数 v2 最终聚合结果（CM 质量未达标）](results/rm-cm-full-256-64-zero2-v2.json)

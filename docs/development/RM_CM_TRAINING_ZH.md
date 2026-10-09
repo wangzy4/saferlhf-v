@@ -170,6 +170,14 @@ v1 训练源 `08d3537aa488be6959898695fb2b7dbd1288fdbc`。CM 训练 48 updates �
 
 上传显式 `--upload`，默认私有；只有显式 `--public-on-private-quota` 且确认私有存储配额错误才切公共，授权或网络错误不能触发公开。上传后按 immutable HF commit 核对远端权重 LFS SHA256，并下载 metadata 验证 SHA256，保存 receipt。只归档推理权重，不把 optimizer/RNG 重启合同冒称云端备份。第二轮两个 adapter 已私有归档；全参数 v1 暂不作为有效产物上传。HF OAuth 凭证及机器侧授权实现仅留私有数据缓存，不提交代码库。
 
+## 真实 7B 修正轮 v2：最终验收与质量
+
+训练源 `ded1afc618e8ea1aa934294d5fff569e52bd460b`，固定256/64、3 epochs/48 updates。RM/CM 都有 DONE，所有64对 fresh重载最大分数差0，preference排序/CM零阈值一致，optimizer moment恢复与真实post-restore update通过；训练和HF上传分别有完成标记。没有选择中间epoch，训练过程代码未更新。
+
+RM validation29/64→55/64（85.9375%），train254/256（99.21875%）；CM validation39/64→36/64（56.25%），train130/256（50.78125%）。CM最终全部128验证回答判安全（有害62条全部漏判）、阈值66/128（51.5625%）等于多数类基线，balanced50%、AUC0.62096775；训练集也全部判安全。CM质量未达标，不能把保存恢复通过等同于可用于RL。v1和v2执行数值变化确实存在，但不凭一次运行断言精度修正解释了全部质量变化。下一阶段检查loss各项、梯度/score趋势和更大冻结内部验证。
+
+RM训练286.64s/总549.64s，CM训练287.34s/总555.61s；最高allocated61.7745GiB/reserved64.5059GiB，包含整份fresh验证，不能套用v1 allocated57.91GiB。两个完整safetensors已私有上传HF并核对LFS SHA256与下载metadata SHA256；模型链接、immutable revisions、质量限制见结果页和[最终聚合](../results/rm-cm-full-256-64-zero2-v2.json)。CM为研究存档不是合格cost gate；模型卡需显式标明质量失败。
+
 ## 检查记录
 
 新增 RoPE 与产物 privacy/public-fallback 回归后，**50 项测试**在独立 full 环境、隐藏 CUDA 的 CPU 全部通过，无跳过。此前46项覆盖全参数冻结/梯度、词表 logits 裁减评分等价、全局 batch 合约；此前43项包括实际 trainer loss 数值/梯度等价、标签方向、0 rating、真实 tiny score LLaVA 的 LoRA 更新与 adapter 保存重载、cost diagnostics、以及训练 mask/critic/rollout 合约。真实 7B 训练和测试证据分别报告。
