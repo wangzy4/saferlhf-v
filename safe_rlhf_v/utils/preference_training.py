@@ -58,6 +58,47 @@ def preference_loss(scores, preferred_ids, kind, ratings=None, regularization=0.
     return loss, (high > low).float().mean()
 
 
+def preference_score_diagnostics(scores, preferred_ids, kind, ratings=None,
+                                 regularization=0.001, scale=1.0):
+    """Detached loss parts and score-space gradients; never backprop into a model.
+
+    These gradient norms refer to the two scalar scores, not parameter gradients.
+    A mean over ranks is a mean of local norms, not a global gradient norm.
+    Keep the input dtype to expose the same BF16 loss arithmetic as training.
+    """
+    # Validate through the existing contract without changing training loss.
+    preference_loss(scores.detach(), preferred_ids, kind, ratings, regularization, scale)
+    with torch.enable_grad():
+        values = scores.detach().clone().requires_grad_(True)
+        ids = torch.as_tensor(preferred_ids, device=values.device, dtype=torch.long)
+        high_ids = ids - 1 if kind == 'rm' else 2 - ids
+        rows = torch.arange(len(values), device=values.device)
+        margins = values[rows, high_ids] - values[rows, 1 - high_ids]
+        parts = {'pairwise': -F.logsigmoid(margins).mean(),
+                 'regularization': regularization * values.square().mean()}
+        if kind == 'cm':
+            signs = -ratings.to(values.device).float()
+            parts['absolute'] = -scale * F.logsigmoid(signs * values).sum(1).mean()
+        # Match native addition order; this is a diagnostic, not an optimizer loss.
+        total = parts['pairwise']
+        if kind == 'cm':
+            total = total + parts['absolute']
+        total = total + parts['regularization']
+        result = {'loss_total': total.detach(), 'score_mean': values.detach().float().mean(),
+                  'score_std_population': values.detach().float().std(unbiased=False),
+                  'score_positive_fraction': (values.detach() > 0).float().mean(),
+                  'preferred_margin_mean': margins.detach().float().mean()}
+        for name, loss in {**parts, 'total': total}.items():
+            gradient = torch.autograd.grad(loss, values, retain_graph=True)[0]
+            result[f'loss_{name}'] = loss.detach()
+            result[f'score_gradient_l2_{name}'] = gradient.detach().float().norm()
+        if kind == 'cm':
+            result['rating_zero_fraction'] = (ratings == 0).float().mean().detach()
+        if not all(torch.isfinite(value) for value in result.values()):
+            raise ValueError('Non-finite score diagnostic')
+        return result
+
+
 def ranking_diagnostics(scores, preferred_ids, kind, categories):
     """Strict ranking accuracy (ties are incorrect), matching the trainer metric."""
     if scores.ndim != 2 or scores.shape[1] != 2 or len(categories) != len(scores):

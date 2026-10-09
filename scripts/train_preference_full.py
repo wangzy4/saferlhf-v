@@ -28,7 +28,8 @@ import transformers
 from transformers import AutoProcessor, CLIPVisionConfig, LlamaConfig, LlavaConfig, get_scheduler
 from safe_rlhf_v.models.llava import AccustomedLlavaRewardModel
 from safe_rlhf_v.utils.preference_training import (
-    binary_cost_diagnostics, image_from_value, preference_loss, ranking_diagnostics, response_text,
+    binary_cost_diagnostics, image_from_value, preference_loss, preference_score_diagnostics,
+    ranking_diagnostics, response_text,
 )
 from safe_rlhf_v.utils.preference_distributed import (
     configure_full_score_training, score_deepspeed_config, restore_llama_rope_fp32,
@@ -167,6 +168,11 @@ def main():
         ratings = scores.new_tensor([[r[f'response_{i}_harmless_rate'] for i in (1, 2)] for r in batch])
         return preference_loss(scores, [int(r[field]) for r in batch], args.kind, ratings)[0]
 
+    def score_diagnostics(scores, batch):
+        field = 'more_helpful_response_id' if args.kind == 'rm' else 'safer_response_id'
+        ratings = scores.new_tensor([[r[f'response_{i}_harmless_rate'] for i in (1, 2)] for r in batch])
+        return preference_score_diagnostics(scores, [int(r[field]) for r in batch], args.kind, ratings)
+
     @torch.no_grad()
     def evaluate(all_rows, return_scores=False):
         engine.eval()
@@ -201,6 +207,8 @@ def main():
         if args.kind == 'cm':
             unsafe = torch.tensor([[r[f'is_response_{i}_safe'] == 'no' for i in (1, 2)] for r in all_rows])
             result.update(binary_cost_diagnostics(values, unsafe))
+        result['fp32_score_loss_diagnostics'] = {
+            name: value.item() for name, value in score_diagnostics(values, all_rows).items()}
         return (result, values) if return_scores else result
 
     history = [{'epoch': 0, 'validation': evaluate(rows['validation'])}]
@@ -219,7 +227,13 @@ def main():
             torch.cuda.synchronize()
             tick = time.perf_counter()
             batch = [rows['train'][i] for i in order[offset:offset + args.batch_pairs]]
-            loss = loss_for(scores_for(batch), batch)
+            scores = scores_for(batch)
+            loss = loss_for(scores, batch)
+            diagnostics = score_diagnostics(scores, batch)
+            diagnostic_names = sorted(diagnostics)
+            diagnostic_values = torch.stack([diagnostics[name].float() for name in diagnostic_names])
+            dist.all_reduce(diagnostic_values)
+            diagnostic_values /= world
             if not torch.isfinite(loss):
                 raise RuntimeError('Non-finite training loss')
             engine.backward(loss)
@@ -237,7 +251,8 @@ def main():
             if rank == 0:
                 event = {'epoch': epoch, 'step': step, 'loss': average_loss.item() / world,
                          'grad_norm': float(norm), 'lr': scheduler.get_last_lr()[0],
-                         'training_seconds': training_seconds}
+                         'training_seconds': training_seconds,
+                         'diagnostic_mean_over_ranks': dict(zip(diagnostic_names, diagnostic_values.tolist()))}
                 with (run / 'steps.jsonl').open('a') as handle:
                     handle.write(json.dumps(event) + '\n')
                 print(json.dumps(event), flush=True)
@@ -361,6 +376,8 @@ def main():
                    'fresh_reload_validation_pairs': len(rows['validation']),
                    'fresh_reload_validation_ranking_equal': True,
                    'rotary_buffer_precision': rotary_precision,
+                   'score_loss_diagnostics': 'detached same-dtype training loss parts and score gradients; '
+                                             'per-step mean of rank-local statistics; eval recomputed FP32',
                    'optimizer_moment_restore_verified': True, 'post_restore_update_verified': True,
                    'resume_check_updates_not_saved': 1,
                    'dataset_sha256': manifest['file_sha256'], 'data_revision': manifest['revision'],

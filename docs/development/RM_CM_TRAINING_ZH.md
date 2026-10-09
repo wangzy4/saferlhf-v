@@ -178,6 +178,16 @@ RM validation29/64→55/64（85.9375%），train254/256（99.21875%）；CM vali
 
 RM训练286.64s/总549.64s，CM训练287.34s/总555.61s；最高allocated61.7745GiB/reserved64.5059GiB，包含整份fresh验证，不能套用v1 allocated57.91GiB。两个完整safetensors已私有上传HF并核对LFS SHA256与下载metadata SHA256；模型链接、immutable revisions、质量限制见结果页和[最终聚合](../results/rm-cm-full-256-64-zero2-v2.json)。CM为研究存档不是合格cost gate；模型卡需显式标明质量失败。
 
+## 全参数 1K 扩展及损失诊断
+
+新的`rm-cm-full-20cat-1024-256`固定train内部20类、1024/256，重复排除此前两轮LoRA及全参数256/64的全部图像，排除已用evaluation；不是语义排重。固定3epochs/全局batch16/192updates、warmup5，其余全参数原生loss与优化器设置不改。四卡串行、不启动RL。不同验证集不能当严格规模消融。
+
+`preference_score_diagnostics()`只在detached scalar scores的副本上拆解pairwise/absolute/regularization loss与各项score梯度L2，返回detached scalars，不创建模型参数梯度、不修改原loss。逐训练步统计为各rank局部均值（含局部gradient norm的均值，不是全局norm）；参数的真实global grad norm仍单独记录。整split评估的loss诊断用收集scores重新按FP32计算，与训练BF16的逐batch loss可能有舍入差异，字段明确命名`fp32_score_loss_diagnostics`，不据此调参或选epoch。
+
+CPU测试覆盖FP32/BF16分项及score梯度与实际native loss相等、原梯度不被诊断影响、零rating绝对梯度0、no_grad评估上下文与非finite拒绝。新增3项后独立full环境**53 tests无skip通过**。`ds-score-tiny-4gpu-v5-loss-diagnostics`随机tiny的16train/16val/4updates已通过四卡执行、逐步诊断、全部16对fresh差0、optimizer恢复及真实post-restore更新；只工程预检，不是1K/7B效果证据。
+
+预算单模型训练约20分钟/完整25–40分钟、单卡约60–75GiB，需实测；每模型checkpoint约100GiB量级。准备和预检不冒称训练成功，启动后代码固定、结果以独立DONE/summary/reload认证为准。
+
 ## 检查记录
 
 新增 RoPE 与产物 privacy/public-fallback 回归后，**50 项测试**在独立 full 环境、隐藏 CUDA 的 CPU 全部通过，无跳过。此前46项覆盖全参数冻结/梯度、词表 logits 裁减评分等价、全局 batch 合约；此前43项包括实际 trainer loss 数值/梯度等价、标签方向、0 rating、真实 tiny score LLaVA 的 LoRA 更新与 adapter 保存重载、cost diagnostics、以及训练 mask/critic/rollout 合约。真实 7B 训练和测试证据分别报告。
