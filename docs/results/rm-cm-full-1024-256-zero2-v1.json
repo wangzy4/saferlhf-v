@@ -1,5 +1,5 @@
 {
-  "status": "completed_engineering_validation_positive_internal_score_signal_hf_pending_verification",
+  "status": "completed_engineering_validation_positive_internal_score_signal_private_hf_verified",
   "training_commit": "957d372c053e6890e9ee9b7efbc85633f2aa19f0",
   "run_name": "rm-cm-full-20cat-1024-256-zero2-v1",
   "rl_started": false,
@@ -455,7 +455,11 @@
     "limitations": "Small internal train-split validation, one seed; not recovered author run or final-policy evaluation; ZeRO-2 preflight, frozen unused vocabulary head; logits_to_keep=1 leaves hidden-state scoring unchanged; resource peaks include fresh-model reload",
     "hf_archive": {
       "repo_id": "wangzyuan/llava-1.5-7b-rm-1024-full-rope-fp32",
-      "status": "pending_verification"
+      "revision": "1b072c71ce69622817db2e2927f651a4a1b903f6",
+      "private": true,
+      "weight_sha256_verified": true,
+      "metadata_sha256_verified": true,
+      "status": "verified"
     },
     "validation_history": [
       {
@@ -1034,7 +1038,11 @@
     "limitations": "Small internal train-split validation, one seed; not recovered author run or final-policy evaluation; ZeRO-2 preflight, frozen unused vocabulary head; logits_to_keep=1 leaves hidden-state scoring unchanged; resource peaks include fresh-model reload",
     "hf_archive": {
       "repo_id": "wangzyuan/llava-1.5-7b-cm-1024-full-rope-fp32",
-      "status": "pending_verification"
+      "revision": "6f9e5968339ddc36e502e29c4e0be5d49097aabd",
+      "private": true,
+      "weight_sha256_verified": true,
+      "metadata_sha256_verified": true,
+      "status": "verified"
     },
     "validation_history": [
       {
@@ -1184,6 +1192,6 @@
     "CM validation pairwise80.08%, balanced85.87%, AUC0.932; no all-safe collapse, but 28/194 unsafe false negatives and 44/318 safe false positives.",
     "Both train/validation gaps and late-epoch loss rises need generalization and score calibration scrutiny before RL.",
     "Full-validation fresh reload differences0, optimizer moments restored and actual resumed update tested; not original author trainer/ZeRO3/RNG/full restart certification.",
-    "Private HF upload/remote hash verification not yet confirmed complete; local verified artifacts retained."
+    "Both private HF archives verified at immutable revisions using remote LFS weight SHA256 and re-downloaded metadata SHA256; optimizer/RNG checkpoints remain local."
   ]
 }

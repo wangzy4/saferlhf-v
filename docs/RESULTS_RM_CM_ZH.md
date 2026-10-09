@@ -8,7 +8,7 @@
 - CM 验证排序：**44.53% → 80.08%（205/256）**。
 - CM 零阈值安全标签准确率：**52.15% → 85.94%（440/512）**，本验证集多数类基线 **62.11%**；平衡准确率 **85.87%**，AUC **0.932**。
 - 全部256对fresh重载分数最大差均为 **0**，optimizer moments恢复及真实恢复后更新通过。
-- 每模型纯训练 **约19.7–19.8分钟**，加载、评估、保存和重载全程 **约27.5–27.6分钟**。当前训练已退出，HF归档尚待两模型上传及远端哈希验证完成。
+- 每模型纯训练 **约19.7–19.8分钟**，加载、评估、保存和重载全程 **约27.5–27.6分钟**。当前训练已退出，两模型HF私有上传与远端权重/metadata哈希核验均完成。
 
 RM训练集99.12%、CM98.34%，与验证集存在明显差距；两模型最终epoch验证损失上升，尤其RM准确率下降，需要继续检查泛化及分数校准。下一阶段是RL接入/生成样本评分检查，**尚未启动RL，也未完成作者最终策略的生成对比**。不是论文效果复现，不保证安全部署。
 
@@ -150,7 +150,14 @@ CM在194个有害回答中识别166个、漏检28个（有害召回85.57%）；3
 
 ## Hugging Face 产物保存
 
-**1K全参数的训练及本地验收已完成，但HF私有归档仍在进行，尚未确认两模型的上传及远端哈希验证都完成。** 目标为 `wangzyuan/llava-1.5-7b-{rm,cm}-1024-full-rope-fp32`；取得immutable revision及receipt后更新，不把已有staging或创建仓库当成归档成功。
+**1K全参数RM/CM均已HF私有归档，核对immutable revision的远端权重SHA256及重新下载的metadata SHA256，全部通过。**
+
+- RM：[wangzyuan/llava-1.5-7b-rm-1024-full-rope-fp32](https://huggingface.co/wangzyuan/llava-1.5-7b-rm-1024-full-rope-fp32)，revision `1b072c71ce69622817db2e2927f651a4a1b903f6`。
+- CM：[wangzyuan/llava-1.5-7b-cm-1024-full-rope-fp32](https://huggingface.co/wangzyuan/llava-1.5-7b-cm-1024-full-rope-fp32)，revision `6f9e5968339ddc36e502e29c4e0be5d49097aabd`。
+
+用户已允许下一阶段少量RL及64题外部GPT验证，新64train/64内部validation已READY，均排除上述评分训练/验证、辅助验证及evaluation精确图像重复。外部64题则从官方590题evaluation中按seed42、20类轮转另行冻结，64张不同图像；不用源train内部64题声称作者策略未见。这是此前推理诊断用过的evaluation子集，不是全新盲测。原生RL只读加载/rollout接口已通过，完整训练工程预检待完成，**还没有RL参数更新**。计划分别以原始LLaVA和作者SafeRLHF-V策略初始化，用我们RM＋CM作短程Safe RLHF-V，再在相同64题、相同生成设置比较训练前后。PTX按论文所用SFT数据另行固定小子集，不悄悄省略或声称原trainer已认证。指定外部judge型号和计费仍待确认：2次不含样本的极小文本可用性请求分别返回model_not_found/403，没有成功completion、没有usage/计费记录；尚未提交任何验证样本。不以自己的RM/CM代替外部胜率，也不恢复本地judge。
+
+新增**80对独立评分验证**已完成：RM **60/80（75%）**、CM **64/80（80%）**；CM在160条已标注回答的零阈值准确率 **138/160（86.25%）**、balanced accuracy **86.43%**、AUC **0.9252**，有害漏检 **8/63**、安全误报 **14/97**。全部20类各4对，排除前轮图像及evaluation精确RGB重复。原生RL loader、FP32 RoPE、4条真实生成的rollout/mask/logprob/critic-value对齐、GAE及PPO/critic loss有限性也已通过只读预检；这些是三个冻结模型共享六个逻辑角色、**0次optimizer更新**，不是六模型ZeRO/RL训练认证。4条生成均触顶128tokens，EOS/可变响应长度及完整训练工程还需测试；评分准确率不是生成安全率。见 [聚合结果](results/rl-readonly-contract-probe-80-v3.json)。
 
 第二轮 LoRA 已保存到私有模型仓库，并核对远端权重 SHA256、配置/processor/聚合结果 SHA256：
 

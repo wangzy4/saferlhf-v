@@ -190,7 +190,13 @@ CPU测试覆盖FP32/BF16分项及score梯度与实际native loss相等、原梯�
 
 RM验证122/256→194/256（75.78125%），train1015/1024（99.1211%）；预定epoch1/2/3验证204/198/194，未选择epoch1最好模型。CM验证114/256→205/256（80.078125%），train1007/1024（98.3398%）；CM零阈值440/512（85.9375%）、balanced85.8653%、AUC0.931871，majority62.1094%。有害194（检出166/漏检28）、安全318（真安全274/误报44）；meanunsafe+3.774/safe−4.148，已脱离全判安全。最终CM验证loss分项FP32pair0.492463/absolute1.011745/reg0.028759，total1.532967；train分项0.070303/0.268239/0.036191，total0.374733。仅内部评分与原生loss一致性诊断，不是生成安全或论文直接对照。两模型后段validation loss上升、train-val明显差距，RL前仍需泛化/分数分布校准与接入检查。
 
-两模型所有256对fresh最大差0、排序及CM零阈值一致，checkpoint score差0、optimizer moments恢复、真实post-restore update通过，summary/DONE完整。未认证原始trainer/ZeRO3/RNG/data cursor/跨world-size恢复。训练与归档状态分开：HF私有归档正在进行、尚未确认两模型上传及remote weight/metadata哈希核验都完成，不能用staging存在代替receipt。下一阶段先验证RL接入/校准，当前不自动RL/新大规模训练。最终聚合见 [1K full结果](../results/rm-cm-full-1024-256-zero2-v1.json)。
+两模型所有256对fresh最大差0、排序及CM零阈值一致，checkpoint score差0、optimizer moments恢复、真实post-restore update通过，summary/DONE完整。未认证原始trainer/ZeRO3/RNG/data cursor/跨world-size恢复。训练与归档状态分开：HF私有归档均已完成，RM revision `1b072c71ce69622817db2e2927f651a4a1b903f6`、CM revision `6f9e5968339ddc36e502e29c4e0be5d49097aabd`，远端LFS权重及重新下载metadata SHA256核验通过、receipt保留。用户随后允许两种初始化的小规模RL及64题外部GPT验证：新独立64/64内部数据已READY，外部64题另从官方evaluation固定选择（不是全新盲测），原生只读模型加载/rollout已通过，完整训练工程尚待认证，尚无RL参数更新；外部API型号与计费待确认，2次无样本的极小文本请求返回model_not_found/403，无成功completion或usage，无样本提交，不恢复本地judge。PTX及原trainer/ZeRO3/offload工程需实际认证后启动，不把只读alias模型的probe当训练。
+
+### 原生RL只读接口预检（新80对，不是RL更新）
+
+`scripts/check_native_rl_contracts.py` 在冻结训练源码下实际调用 `load_pretrained_models`、`SafeRLHFVTrainer.rollout`、KL/GAE/actor/critic loss，严格模型key inventory、无meta参数、FP32 RoPE、576 image tokens与无截断编码。80 validation对来自独立准备集，20条伴随train行未训练。RM60/80、CM64/80；CM138/160零阈值正确、balanced0.86434299、AUC0.92521679，有害55检出/8漏检、安全83正确/14误报。四条实际 sampled rollout的响应mask/logprob/value形状一致、actor/reference相同故KL0，native losses有限。
+
+该预检仅三个冻结模型，actor/reference及score/critic是只读aliases，无optimizer/参数梯度、无ZeRO引擎；41.97/43.61GiB峰allocated/reserved不能作为六模型RL预算。四条均触顶128tokens，因此EOS及可变响应长度仍未覆盖，真实RL拟用512tokens而不是靠更短截断减成本。早期两次预检因启动环境漏CUDA_HOME、私有probe安全列名拼错失败，日志保留、新run/helper修正；不是训练checkpoint失败。原生PromptOnlyDataset附EOS、独立critic梯度、stage3 RoPE/offload保存、PTX联合更新仍需专门tiny认证。外部指定型号的2次文本探测已失败，无成功completion、无usage，未提交任何验证样本；仅冻结的这64题获得用户后续外部验证授权。CPUAdam隔离编译及4步FP32参数/moments对照torch.AdamW已通过（参数最大差0，v1解释器退出destructor警告在v2显式cleanup消除），不替代ZeRO/offload训练认证；PTX论文指定数据的首分片已固定revision并校验SHA256（607,353,211 bytes），尚未选取/训练小子集。聚合见 [只读预检结果](../results/rl-readonly-contract-probe-80-v3.json)。最终聚合见 [1K full结果](../results/rm-cm-full-1024-256-zero2-v1.json)。
 
 ## 检查记录
 

@@ -1,0 +1,257 @@
+{
+  "scope": "read_only_upstream_rollout_and_loss_probe_not_rl_training",
+  "n_independent_pairs": 80,
+  "shared_actor_reference_and_scorer_critic": true,
+  "optimizer_updates": 0,
+  "parameters_frozen": true,
+  "judge_api_calls": 0,
+  "dataset_manifest_sha256": "952030e9e4eb88516e80d93165aef090ab3b5a847e4f853ce6536de3d0294c81",
+  "script_sha256": "dd7655cee95830961d2db351aaf5085bb9bf271779ebd254a9fa7bc0d7f07536",
+  "source_commit": "957d372c053e6890e9ee9b7efbc85633f2aa19f0",
+  "strict_rl_loader_key_inventory": true,
+  "canonical_rope_fp32": true,
+  "rm_independent_response_validation": {
+    "pairwise_correct": 60,
+    "pairwise_ties": 0,
+    "by_category": {
+      "animal_abuse": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "dangerous_behavior": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "deception_in_personal_relationships": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "discriminatory_depictions": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "environmental_damage": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "false_information": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "financial_and_academic_fraud": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "hacking_or_digital_crime": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "harmful_health_content": {
+        "n": 4,
+        "correct": 1,
+        "accuracy": 0.25
+      },
+      "horror_and_gore": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "identity_misuse_and_impersonation": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "insulting_and_harassing_behavior": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "pornographic_content": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "privacy_invasion_and_surveillance": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "psychological_harm_and_manipulation": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "psychological_horror_and_dark_themes": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "sensitive_information_in_key_areas": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "sexual_crimes": {
+        "n": 4,
+        "correct": 1,
+        "accuracy": 0.25
+      },
+      "terrorism_or_extremism": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "violence_and_physical_harm": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      }
+    },
+    "pairwise_accuracy": 0.75
+  },
+  "cm_independent_response_validation": {
+    "pairwise_correct": 64,
+    "pairwise_ties": 0,
+    "by_category": {
+      "animal_abuse": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "dangerous_behavior": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "deception_in_personal_relationships": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "discriminatory_depictions": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "environmental_damage": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "false_information": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "financial_and_academic_fraud": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "hacking_or_digital_crime": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "harmful_health_content": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "horror_and_gore": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "identity_misuse_and_impersonation": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "insulting_and_harassing_behavior": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "pornographic_content": {
+        "n": 4,
+        "correct": 2,
+        "accuracy": 0.5
+      },
+      "privacy_invasion_and_surveillance": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "psychological_harm_and_manipulation": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "psychological_horror_and_dark_themes": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "sensitive_information_in_key_areas": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "sexual_crimes": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "terrorism_or_extremism": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      },
+      "violence_and_physical_harm": {
+        "n": 4,
+        "correct": 3,
+        "accuracy": 0.75
+      }
+    },
+    "pairwise_accuracy": 0.8,
+    "n_responses": 160,
+    "n_unsafe": 63,
+    "safety_label_accuracy_at_zero": 0.862500011920929,
+    "balanced_safety_label_accuracy_at_zero": 0.864342987537384,
+    "majority_class_baseline": 0.606249988079071,
+    "true_unsafe": 55,
+    "false_unsafe": 14,
+    "true_safe": 83,
+    "false_safe": 8,
+    "unsafe_cost_mean": 3.4724819660186768,
+    "safe_cost_mean": -4.636394500732422,
+    "response_safety_auc": 0.925216794013977
+  },
+  "model_gradients_not_created": true,
+  "peak_allocated_gib": 41.97116231918335,
+  "peak_reserved_gib": 43.61328125,
+  "native_rollout_probe": {
+    "n_generated_responses": 4,
+    "max_new_tokens": 128,
+    "all_four_hit_generation_cap": true,
+    "all_shapes_and_mask_valid": true,
+    "identical_actor_reference_kl_zero": true,
+    "native_gae_actor_and_critic_losses_finite": true,
+    "optimizer_updates": 0
+  },
+  "limitations": [
+    "Three frozen physical models share the six logical roles; no independent trainable critics, parameter update or ZeRO/offload training was tested. Peak memory does not estimate six-model RL training.",
+    "All four sampled responses hit the128-token cap; EOS termination and variable response lengths still need independent testing. No generated responses externally judged.",
+    "The80 labeled pairs are distinct from prior RM/CM train/validation and evaluation by exact decoded RGB hash, not semantic/near-duplicate dedup.",
+    "Interface/numerical checks and ranking on labeled existing responses do not measure policy generation safety or paper win rate."
+  ]
+}
