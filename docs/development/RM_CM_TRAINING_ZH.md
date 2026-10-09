@@ -180,13 +180,17 @@ RM训练286.64s/总549.64s，CM训练287.34s/总555.61s；最高allocated61.7745
 
 ## 全参数 1K 扩展及损失诊断
 
-新的`rm-cm-full-20cat-1024-256`已READY，固定train内部20类、1024/256，最长1982tokens；重复排除此前两轮LoRA及全参数256/64的全部1760张图像，排除已用evaluation，所选所有跨划分精确图像重复0。源prior重复2084行/evaluation2行、取样重复跳过6个；不是语义排重。新run `rm-cm-full-20cat-1024-256-zero2-v1`，训练源固定 `957d372c053e6890e9ee9b7efbc85633f2aa19f0`，RM已启动、随后CM串行，训练期不更新源码。固定3epochs/全局batch16/192updates、warmup5，其余全参数原生loss与优化器设置不改。四卡串行、不启动RL。不同验证集不能当严格规模消融。
+新的`rm-cm-full-20cat-1024-256`已READY，固定train内部20类、1024/256，最长1982tokens；重复排除此前两轮LoRA及全参数256/64的全部1760张图像，排除已用evaluation，所选所有跨划分精确图像重复0。源prior重复2084行/evaluation2行、取样重复跳过6个；不是语义排重。新run `rm-cm-full-20cat-1024-256-zero2-v1`，训练源固定 `957d372c053e6890e9ee9b7efbc85633f2aa19f0`，RM/CM均已完成训练、保存及完整重载验收，训练期未更新源码。固定3epochs/全局batch16/192updates、warmup5，其余全参数原生loss与优化器设置不改。四卡串行、不启动RL。不同验证集不能当严格规模消融。
 
 `preference_score_diagnostics()`只在detached scalar scores的副本上拆解pairwise/absolute/regularization loss与各项score梯度L2，返回detached scalars，不创建模型参数梯度、不修改原loss。逐训练步统计为各rank局部均值（含局部gradient norm的均值，不是全局norm）；参数的真实global grad norm仍单独记录。整split评估的loss诊断用收集scores重新按FP32计算，与训练BF16的逐batch loss可能有舍入差异，字段明确命名`fp32_score_loss_diagnostics`，不据此调参或选epoch。
 
 CPU测试覆盖FP32/BF16分项及score梯度与实际native loss相等、原梯度不被诊断影响、零rating绝对梯度0、no_grad评估上下文与非finite拒绝。新增3项后独立full环境**53 tests无skip通过**。`ds-score-tiny-4gpu-v5-loss-diagnostics`随机tiny的16train/16val/4updates已通过四卡执行、逐步诊断、全部16对fresh差0、optimizer恢复及真实post-restore更新；只工程预检，不是1K/7B效果证据。
 
-预算单模型训练约20分钟/完整25–40分钟、单卡约60–75GiB，需实测；每模型checkpoint约100GiB量级。准备和预检不冒称训练成功，启动后代码固定、结果以独立DONE/summary/reload认证为准。
+实测RM训练1187.14s/总1658.41s，CM训练1180.80s/总1651.39s，最高allocated/reserved61.8613/66.140625GiB，包含完整fresh验证和恢复；四卡串行合计约55分钟、已释放本项目GPU，不含HF上传。每模型checkpoint约100GiB量级，与样本量不成比例增长。
+
+RM验证122/256→194/256（75.78125%），train1015/1024（99.1211%）；预定epoch1/2/3验证204/198/194，未选择epoch1最好模型。CM验证114/256→205/256（80.078125%），train1007/1024（98.3398%）；CM零阈值440/512（85.9375%）、balanced85.8653%、AUC0.931871，majority62.1094%。有害194（检出166/漏检28）、安全318（真安全274/误报44）；meanunsafe+3.774/safe−4.148，已脱离全判安全。最终CM验证loss分项FP32pair0.492463/absolute1.011745/reg0.028759，total1.532967；train分项0.070303/0.268239/0.036191，total0.374733。仅内部评分与原生loss一致性诊断，不是生成安全或论文直接对照。两模型后段validation loss上升、train-val明显差距，RL前仍需泛化/分数分布校准与接入检查。
+
+两模型所有256对fresh最大差0、排序及CM零阈值一致，checkpoint score差0、optimizer moments恢复、真实post-restore update通过，summary/DONE完整。未认证原始trainer/ZeRO3/RNG/data cursor/跨world-size恢复。训练与归档状态分开：HF私有归档正在进行、尚未确认两模型上传及remote weight/metadata哈希核验都完成，不能用staging存在代替receipt。下一阶段先验证RL接入/校准，当前不自动RL/新大规模训练。最终聚合见 [1K full结果](../results/rm-cm-full-1024-256-zero2-v1.json)。
 
 ## 检查记录
 
