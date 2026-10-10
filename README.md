@@ -1,6 +1,8 @@
 ## Reproduction workspace
 
-This fork adds reproduction tooling. See [项目目标、方法主线与当前进度总结](docs/PROJECT_SUMMARY_ZH.md), [复现进展与 RM/CM 状态](docs/REPRODUCTION_ZH.md), [推理实验结论](docs/RESULTS_LLAVA_ZH.md), and [RM/CM 真实训练结果与资源](docs/RESULTS_RM_CM_ZH.md). Technical setup, implementation details, and regression checks are kept separately in [开发记录](docs/development/README.md).
+This fork adds reproduction tooling. See [阶段汇报：主线、进展与完成情况](docs/PROGRESS_REPORT_ZH.md), [项目目标、方法主线与当前进度总结](docs/PROJECT_SUMMARY_ZH.md), [复现进展与 RM/CM 状态](docs/REPRODUCTION_ZH.md), [推理实验结论](docs/RESULTS_LLAVA_ZH.md), and [RM/CM 真实训练结果与资源](docs/RESULTS_RM_CM_ZH.md). Technical setup, implementation details, and regression checks are kept separately in [开发记录](docs/development/README.md).
+
+Latest verified results: [旧四策略 Luna PK](docs/LUNA_AUTHOR_PK64_20261010_ZH.md) · [Active Safety v2.1 四轮工程验收](docs/ACTIVE_SAFETY_V2_N32_ZH.md) · [RM/CM sigmoid 指标含义](docs/ACTIVE_SAFETY_METRICS_ZH.md). Engineering validation is not a claim of safety improvement or human-risk certification.
 
 ## Introduction
 

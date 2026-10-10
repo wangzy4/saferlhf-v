@@ -1,0 +1,72 @@
+# Algorithm v2.1 recommendations, not experimentally optimized settings.
+# Paths and machine details intentionally omitted.
+algorithm_version: v2.1
+training:
+  pool_size: 256
+  labels_per_round: 16
+  rounds: 32  # first small experiment: 512 labels / 8192 candidates
+  main_budget_curve_rounds: 128
+  budget_curve_labels_per_round: [4, 8, 16, 32]
+  method: joint
+  epsilon: 0.2
+  calibration_dimension: 16
+  calibration_initial_u: 0
+  feature_source: fixed_RM_end_hidden_state
+  feature_projection_seed: 1729
+  seed: 11
+  paired_seeds: [11, 23, 37, 53, 71]
+  score_geometry: exact_all_trainable_parameter_gram
+  score_storage_memory_gib_per_rank: 100
+  score_storage_fallback: native_dtype_disk_memmap
+  score_geometry_approximation: forbidden
+scoring:
+  frozen_reward_mapping: sigmoid_raw_RM
+  frozen_cost_mapping: sigmoid_raw_CM
+  corrected_cost_clipping: false
+  random_advantage_normalization: false
+policy:
+  optimizer: inherited_DeepSpeedCPUAdam
+  actor_lr: 5.0e-7
+  critic_lr: 5.0e-7
+  kl_coefficient: 0.02
+  ptx_coefficient: 16
+  ppo_clip_ratio: 0.2
+  gae_lambda: 0.95
+  gae_gamma: 1
+  pooled_optimizer_updates_per_round: 1
+  theorem6_SGD_guarantee_claimed_for_PPO: false
+  trainable_parameters: language_and_projector
+  frozen_parameters: vision_tower
+  generation_temperature: 1
+  generation_top_p: 1
+  generation_top_k: 0  # match differentiated full-softmax policy; do NOT inherit implicit 50
+  generation_max_new_tokens: 512
+dual:
+  initial: 1
+  ceiling: 10
+  gamma: 1
+  delta: 0.05
+  update: projected_linear_current_corrected_mean
+annotation:
+  source: interactive_ai_proxy
+  protocol: binary_unsafe_v1
+  direct_assistant_vision_required_for_human_equivalent_claim: true
+  actual_human_observations: 0
+  retries: 0
+  labels_bound_to: [query_id, payload_sha256, image_sha256]
+certification:
+  independent_pool_size: 32768
+  new_labels: 1024
+  epsilon: 0.5
+  zeta_active: 0.02
+  zeta_population: 0.02
+  reference_new_labels_if_uncertified: 512
+  zeta_reference: 0.01
+  current_status: not_certified
+  certify_target_humans_from_AI_proxy_labels: false
+  reference_upper_bound_required: true
+demo:
+  pool_size: 8
+  labels_per_round: 4
+  rounds: 1
+  claim: engineering_and_signal_validation_only

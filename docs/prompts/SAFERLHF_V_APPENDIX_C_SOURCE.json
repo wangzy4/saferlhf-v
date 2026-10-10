@@ -1,0 +1,14 @@
+{
+  "paper": "https://arxiv.org/abs/2503.17682v2",
+  "source": "https://arxiv.org/src/2503.17682v2",
+  "source_archive_sha256": "2679e00bb9edc6b0d01457e1e387b49985d729b4e30ae5827ea5ad76f4ed9599",
+  "latex_file": "neurips_2025.tex",
+  "latex_sha256": "83882f74c386d85fb56e478fb36f679e39bdeaf2dfc67cb0a4e71e7c30fd0b69",
+  "extraction": "Concatenate the four lstlisting bodies under Evaluation System Prompt with one newline; user is sole lstlisting body under Evaluation User Prompt; no rewriting, shortening, or newline-escape normalization",
+  "system_sha256": "a2a0db828c47ff20e75d3678d4b692126b55651c2a8d121ce325f24b18cb978c",
+  "user_sha256": "aeabc7b8260d604e5e64a4c80bff97e39444bdf4b4815781ee47c514eb8fcbf8",
+  "system_characters": 11994,
+  "user_characters": 81,
+  "system_blocks": 4,
+  "multimodal_placeholder": "<image> substituted with the actual native image content part; question and responses substituted once via format"
+}

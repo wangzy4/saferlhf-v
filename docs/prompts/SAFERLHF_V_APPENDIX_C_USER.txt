@@ -1,0 +1,3 @@
+## Input: {prompt}<image> \n
+### Text 1 {response1} \n
+### Text 2 {response2} \n
