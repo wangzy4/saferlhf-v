@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Small full-language-backbone native LLaVA RM/CM training, DeepSpeed ZeRO-2.
+"""Full-language-backbone native LLaVA RM/CM training, DeepSpeed ZeRO-2.
 
-Not the author's recovered experiment: uses published optimizer settings, native
-score architecture/loss, internal train-split validation. No LoRA, RL or judge.
-Launch with torchrun and explicit idle physical GPUs; all artifacts under --root.
+Uses published optimizer settings and native score architecture/loss. Dataset
+size/provenance are explicit; this is not the author's recovered experiment.
+No LoRA, RL or judge. Launch with explicit idle physical GPUs.
 """
 import argparse
 import gc
@@ -50,13 +50,18 @@ def main():
     p.add_argument('--tiny', action='store_true', help='Random small architecture engine test, not 7B training')
     p.add_argument('--limit-train', type=int)
     p.add_argument('--limit-validation', type=int)
+    p.add_argument('--checkpoint-interval', type=int, default=0,
+                   help='Save additional optimizer snapshots every N updates; 0 disables')
+    p.add_argument('--epoch-checkpoints', action='store_true')
+    p.add_argument('--native-loss-precision', action='store_true',
+                   help='Use upstream integer-sign CM arithmetic; historical default used FP32 absolute terms')
     args = p.parse_args()
     rank, local, world = (int(os.environ[k]) for k in ('RANK', 'LOCAL_RANK', 'WORLD_SIZE'))
     devices = os.environ.get('CUDA_VISIBLE_DEVICES', '').split(',')
     if len(devices) != world or not all(s.isdigit() for s in devices) or len(set(devices)) != world:
         p.error('CUDA_VISIBLE_DEVICES must explicitly list distinct physical GPUs, one per rank')
-    if min(args.epochs, args.batch_pairs) < 1 or any(v is not None and v < world
-                                                  for v in (args.limit_train, args.limit_validation)):
+    if min(args.epochs, args.batch_pairs) < 1 or args.checkpoint_interval < 0 or any(
+            v is not None and v < world for v in (args.limit_train, args.limit_validation)):
         p.error('Invalid epochs/batch/sample limits')
     if transformers.__version__ != '4.48.3' or deepspeed.__version__ != '0.16.2':
         raise RuntimeError('Preflight is pinned to Transformers 4.48.3 / DeepSpeed 0.16.2')
@@ -101,9 +106,10 @@ def main():
             if hashlib.file_digest(handle, 'sha256').hexdigest() != manifest['file_sha256'][split]:
                 raise RuntimeError('Dataset checksum mismatch')
         rows[split] = pq.read_table(path).to_pylist()[:limit]
-    if len(rows['train']) % (world * args.batch_pairs) or len(rows['validation']) % world:
-        raise RuntimeError('Use evenly divisible splits; do not silently duplicate/drop samples')
+    if len(rows['train']) % (world * args.batch_pairs) or not rows['validation']:
+        raise RuntimeError('Training must be evenly divisible; validation is exact, unpadded')
     torch.cuda.set_device(local)
+    score_device = torch.device('cuda', local)
     deepspeed.init_distributed(dist_backend='nccl')
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -154,7 +160,7 @@ def main():
         inputs = processor(text=texts, images=images, padding=True, return_tensors='pt')
         if inputs.input_ids.shape[1] > manifest['max_length']:
             raise RuntimeError('Over-length batch; no truncation permitted')
-        return {k: v.to(engine.device, dtype=torch.bfloat16 if v.is_floating_point() else v.dtype)
+        return {k: v.to(score_device, dtype=torch.bfloat16 if v.is_floating_point() else v.dtype)
                 for k, v in inputs.items()}
 
     def scores_for(batch, scoring_model=None):
@@ -166,12 +172,14 @@ def main():
     def loss_for(scores, batch):
         field = 'more_helpful_response_id' if args.kind == 'rm' else 'safer_response_id'
         ratings = scores.new_tensor([[r[f'response_{i}_harmless_rate'] for i in (1, 2)] for r in batch])
-        return preference_loss(scores, [int(r[field]) for r in batch], args.kind, ratings)[0]
+        return preference_loss(scores, [int(r[field]) for r in batch], args.kind, ratings,
+                               native_precision=args.native_loss_precision)[0]
 
     def score_diagnostics(scores, batch):
         field = 'more_helpful_response_id' if args.kind == 'rm' else 'safer_response_id'
         ratings = scores.new_tensor([[r[f'response_{i}_harmless_rate'] for i in (1, 2)] for r in batch])
-        return preference_score_diagnostics(scores, [int(r[field]) for r in batch], args.kind, ratings)
+        return preference_score_diagnostics(scores, [int(r[field]) for r in batch], args.kind, ratings,
+                                            native_precision=args.native_loss_precision)
 
     @torch.no_grad()
     def evaluate(all_rows, return_scores=False):
@@ -218,6 +226,29 @@ def main():
             print(json.dumps(history[-1]), flush=True)
     save_history()
     step, training_seconds = 0, 0.0
+    checkpoint_tags = set()
+
+    def save_checkpoint(epoch, next_batch_offset):
+        tag = f'step-{step}'
+        if tag in checkpoint_tags:
+            return
+        rng = {'python': random.getstate(), 'numpy': np.random.get_state(),
+               'torch_cpu': torch.get_rng_state(), 'torch_cuda': torch.cuda.get_rng_state()}
+        rng_states = [None] * world
+        dist.all_gather_object(rng_states, rng)
+        engine.save_checkpoint(str(run / 'checkpoint'), tag=tag, client_state={
+            'optimizer_steps': step, 'seed': args.seed, 'epoch': epoch,
+            'next_local_batch_offset': next_batch_offset, 'world_size': world,
+            'batch_pairs_per_gpu': args.batch_pairs, 'planned_optimizer_steps': total_steps,
+            'dataset_sha256': manifest['file_sha256'], 'kind': args.kind,
+            'native_loss_precision': args.native_loss_precision,
+            'rng_states_by_rank': rng_states, 'history': history,
+        })
+        checkpoint_tags.add(tag)
+        if rank == 0:
+            print(json.dumps({'event': 'checkpoint_saved', 'tag': tag,
+                              'epoch': epoch, 'next_local_batch_offset': next_batch_offset}), flush=True)
+
     for epoch in range(1, args.epochs + 1):
         engine.train()
         order = list(range(len(rows['train'])))
@@ -256,9 +287,13 @@ def main():
                 with (run / 'steps.jsonl').open('a') as handle:
                     handle.write(json.dumps(event) + '\n')
                 print(json.dumps(event), flush=True)
+            if args.checkpoint_interval and step % args.checkpoint_interval == 0:
+                save_checkpoint(epoch, offset + args.batch_pairs)
         validation, expected_validation_scores = evaluate(rows['validation'], return_scores=True)
         history.append({'epoch': epoch, 'validation': validation})
         save_history()
+        if args.epoch_checkpoints:
+            save_checkpoint(epoch + 1, 0)
     final_train = evaluate(rows['train'])
     engine.eval()
     reload_rows = rows['validation'][:1]
@@ -270,8 +305,7 @@ def main():
         engine.module.save_pretrained(model_dir, safe_serialization=True, max_shard_size='5GB')
         processor.save_pretrained(model_dir)
     dist.barrier()
-    engine.save_checkpoint(str(run / 'checkpoint'), tag=f'step-{step}',
-                           client_state={'optimizer_steps': step, 'seed': args.seed})
+    save_checkpoint(args.epochs + 1, 0)
     # Test real optimizer/scheduler checkpoint restore, not only adapter weights.
     # Probe and deliberately perturb local optimizer moments before restoration.
     # A successful load with weights alone must not pass this contract.
@@ -305,6 +339,24 @@ def main():
     checkpoint_difference = (expected - restored).abs().max().item()
     if not torch.equal(expected, restored):
         raise RuntimeError('Checkpoint restore score mismatch')
+    # Exercise a post-restore optimizer step without overwriting final artifacts.
+    # A terminal cosine LR may be zero: report it, not a claim of parameter change.
+    engine.train()
+    post_restore_lr = scheduler.get_last_lr()[0]
+    resume_batch = rows['train'][rank * args.batch_pairs:(rank + 1) * args.batch_pairs]
+    resume_loss = loss_for(scores_for(resume_batch), resume_batch)
+    if not torch.isfinite(resume_loss):
+        raise RuntimeError('Non-finite resumed training loss')
+    engine.backward(resume_loss)
+    engine.step()
+    if engine.global_steps != step + 1 or not math.isfinite(float(engine.get_global_grad_norm())):
+        raise RuntimeError('Resumed optimizer update failed')
+    # Release engine/optimizer and autograd graph references BEFORE independent
+    # loading. Full-context verification must not require two 7B models plus Adam.
+    del engine, optimizer, scheduler, scores, loss, resume_loss
+    gc.collect()
+    torch.cuda.empty_cache()
+    dist.barrier()
     # Fresh independent score architecture reload on rank zero, while other ranks wait.
     fresh_difference, fresh_info, validation_reload_difference = None, None, None
     if rank == 0:
@@ -315,7 +367,7 @@ def main():
             raise RuntimeError(f'Fresh checkpoint loading keys: {fresh_info}')
         if any(v.is_meta for v in fresh.parameters()):
             raise RuntimeError('Fresh checkpoint contains meta parameters')
-        fresh.to(engine.device).eval()
+        fresh.to(score_device).eval()
         with torch.no_grad():
             actual = scores_for(reload_rows, fresh).cpu()
         fresh_difference = (expected - actual).abs().max().item()
@@ -342,16 +394,6 @@ def main():
         gc.collect()
         torch.cuda.empty_cache()
     dist.barrier()
-    # One actual post-restore optimizer update, not saved over the final artifacts.
-    engine.train()
-    resume_batch = rows['train'][rank * args.batch_pairs:(rank + 1) * args.batch_pairs]
-    resume_loss = loss_for(scores_for(resume_batch), resume_batch)
-    if not torch.isfinite(resume_loss):
-        raise RuntimeError('Non-finite resumed training loss')
-    engine.backward(resume_loss)
-    engine.step()
-    if engine.global_steps != step + 1 or not math.isfinite(float(engine.get_global_grad_norm())):
-        raise RuntimeError('Resumed optimizer update failed')
     torch.cuda.synchronize()
     metrics = [None] * world
     dist.all_gather_object(metrics, {'rank': rank, 'allocated_gib': torch.cuda.max_memory_allocated() / 2**30,
@@ -376,10 +418,16 @@ def main():
                    'fresh_reload_validation_pairs': len(rows['validation']),
                    'fresh_reload_validation_ranking_equal': True,
                    'rotary_buffer_precision': rotary_precision,
-                   'score_loss_diagnostics': 'detached same-dtype training loss parts and score gradients; '
+                   'score_loss_diagnostics': 'detached selected-precision training loss parts and score gradients; '
                                              'per-step mean of rank-local statistics; eval recomputed FP32',
+                   'native_loss_precision': args.native_loss_precision,
+                   'auc_algorithm': 'Mann–Whitney searchsorted, tie weight 0.5',
                    'optimizer_moment_restore_verified': True, 'post_restore_update_verified': True,
-                   'resume_check_updates_not_saved': 1,
+                   'resume_check_updates_not_saved': 1, 'post_restore_learning_rate': post_restore_lr,
+                   'checkpoint_tags': sorted(checkpoint_tags, key=lambda tag: int(tag.split('-')[1])),
+                   'checkpoint_rng_saved': True, 'full_cursor_rng_resume_verified': False,
+                   'max_length': manifest['max_length'],
+                   'validation_source_split': manifest.get('validation_source_split', 'train'),
                    'dataset_sha256': manifest['file_sha256'], 'data_revision': manifest['revision'],
                    'base_revision': None if args.tiny else 'b234b804b114d9e37bb655e11cbbb5f5e971b7a9',
                    'processor_revision': 'b234b804b114d9e37bb655e11cbbb5f5e971b7a9',
@@ -387,9 +435,10 @@ def main():
                    'code_sha256': {path: hashlib.sha256((Path(__file__).resolve().parents[1] / path).read_bytes()).hexdigest()
                                    for path in ['scripts/train_preference_full.py', 'safe_rlhf_v/utils/preference_distributed.py',
                                                 'safe_rlhf_v/utils/preference_training.py', 'safe_rlhf_v/models/llava.py']},
-                   'limitations': 'Small internal train-split validation, one seed; not recovered author run or final-policy evaluation; '
-                                  'ZeRO-2 preflight, frozen unused vocabulary head; logits_to_keep=1 leaves hidden-state scoring unchanged; '
-                                  'resource peaks include fresh-model reload'}
+                   'limitations': 'One seed; not recovered author run or final-policy evaluation; '
+                                  'dataset split/filters are defined by its manifest, no best-epoch selection; '
+                                  'ZeRO-2, frozen unused vocabulary head; logits_to_keep=1 leaves hidden-state scoring unchanged; '
+                                  'resource peaks include independent reload; cursor/RNG snapshots do not certify full resume'}
         (run / 'summary.json').write_text(json.dumps(summary, indent=2))
         (run / 'DONE').touch()
         print(json.dumps(summary, indent=2), flush=True)

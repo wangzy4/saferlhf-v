@@ -36,6 +36,21 @@ class ScoreDiagnosticsTests(unittest.TestCase):
         self.assertGreater(float(result['score_gradient_l2_pairwise']), 0)
         self.assertIsNone(scores.grad)
 
+    def test_native_precision_diagnostic_matches_loss_and_gradient(self):
+        for dtype in (torch.float32, torch.bfloat16):
+            for kind in ('rm', 'cm'):
+                values = torch.tensor([[.3, -.2], [-.1, .8], [.4, .5]],
+                                      dtype=dtype, requires_grad=True)
+                ratings = torch.tensor([[3, -2], [0, 1], [-1, -3]])
+                loss, _ = preference_loss(values, [1, 2, 1], kind, ratings, native_precision=True)
+                expected_grad = torch.autograd.grad(loss, values)[0]
+                result = preference_score_diagnostics(values, [1, 2, 1], kind, ratings,
+                                                       native_precision=True)
+                torch.testing.assert_close(result['loss_total'], loss.detach(), atol=0, rtol=0)
+                torch.testing.assert_close(result['score_gradient_l2_total'],
+                                           expected_grad.float().norm(), atol=0, rtol=0)
+                self.assertIsNone(values.grad)
+
     def test_nonfinite_diagnostic_rejected(self):
         with self.assertRaisesRegex(ValueError, 'Non-finite'):
             preference_score_diagnostics(torch.tensor([[float('nan'), 1.0]]), [1], 'rm')

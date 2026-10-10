@@ -34,11 +34,14 @@ def response_text(processor, question, response):
     return text if text.endswith(eos) else text + eos
 
 
-def preference_loss(scores, preferred_ids, kind, ratings=None, regularization=0.001, scale=1.0):
+def preference_loss(scores, preferred_ids, kind, ratings=None, regularization=0.001, scale=1.0,
+                    native_precision=False):
     """Match upstream end-score RM/CM losses; IDs refer to raw response 1 or 2.
 
     RM preferred IDs are helpful IDs; CM preferred IDs are safer IDs. CM ranks
     the other response higher in cost and anchors both scores with -harmless rate.
+    native_precision=True preserves upstream integer signs, separate means and
+    stack reduction; default False retains the historical FP32 CM absolute term.
     """
     if scores.ndim != 2 or scores.shape[1] != 2 or kind not in {'rm', 'cm'}:
         raise ValueError('Expected (pairs, 2) scores and kind rm/cm')
@@ -48,18 +51,35 @@ def preference_loss(scores, preferred_ids, kind, ratings=None, regularization=0.
     high_ids = ids - 1 if kind == 'rm' else 2 - ids
     rows = torch.arange(len(scores), device=scores.device)
     high, low = scores[rows, high_ids], scores[rows, 1 - high_ids]
-    loss = -F.logsigmoid(high - low).mean()
+    if native_precision:
+        # Match upstream's shared ordered output/chunk autograd node as well as
+        # arithmetic: separate gather branches can change gradient accumulation.
+        high, low = torch.cat([high, low]).chunk(2)
+    loss = None
+    if kind == 'rm' or not native_precision:
+        loss = -F.logsigmoid(high - low).mean()
     if kind == 'cm':
         if ratings is None or ratings.shape != scores.shape:
             raise ValueError('CM requires one harmless rating for each response')
-        signs = -ratings.to(scores.device).float()
-        loss = loss - scale * F.logsigmoid(signs * scores).sum(1).mean()
-    loss = loss + regularization * scores.square().mean()
+        if native_precision:
+            if (not torch.isfinite(ratings).all() or
+                    (ratings.is_floating_point() and not torch.all(ratings == ratings.round()))):
+                raise ValueError('Native harmless ratings must be finite integers')
+            signs = -ratings.to(device=scores.device, dtype=torch.int64)
+            absolute = -F.logsigmoid(signs[rows, high_ids] * high).mean() - F.logsigmoid(
+                signs[rows, 1 - high_ids] * low).mean()
+            origin_loss = -F.logsigmoid(high - low).mean()
+            loss = scale * absolute + origin_loss
+        else:
+            signs = -ratings.to(scores.device).float()
+            loss = loss - scale * F.logsigmoid(signs * scores).sum(1).mean()
+    regularized = torch.stack([low, high]) if native_precision else scores
+    loss = loss + regularization * regularized.square().mean()
     return loss, (high > low).float().mean()
 
 
 def preference_score_diagnostics(scores, preferred_ids, kind, ratings=None,
-                                 regularization=0.001, scale=1.0):
+                                 regularization=0.001, scale=1.0, native_precision=False):
     """Detached loss parts and score-space gradients; never backprop into a model.
 
     These gradient norms refer to the two scalar scores, not parameter gradients.
@@ -67,23 +87,36 @@ def preference_score_diagnostics(scores, preferred_ids, kind, ratings=None,
     Keep the input dtype to expose the same BF16 loss arithmetic as training.
     """
     # Validate through the existing contract without changing training loss.
-    preference_loss(scores.detach(), preferred_ids, kind, ratings, regularization, scale)
+    preference_loss(scores.detach(), preferred_ids, kind, ratings, regularization, scale,
+                    native_precision)
     with torch.enable_grad():
         values = scores.detach().clone().requires_grad_(True)
         ids = torch.as_tensor(preferred_ids, device=values.device, dtype=torch.long)
         high_ids = ids - 1 if kind == 'rm' else 2 - ids
         rows = torch.arange(len(values), device=values.device)
-        margins = values[rows, high_ids] - values[rows, 1 - high_ids]
+        high, low = values[rows, high_ids], values[rows, 1 - high_ids]
+        if native_precision:
+            high, low = torch.cat([high, low]).chunk(2)
+        margins = high - low
+        regularized = torch.stack([low, high]) if native_precision else values
         parts = {'pairwise': -F.logsigmoid(margins).mean(),
-                 'regularization': regularization * values.square().mean()}
+                 'regularization': regularization * regularized.square().mean()}
         if kind == 'cm':
-            signs = -ratings.to(values.device).float()
-            parts['absolute'] = -scale * F.logsigmoid(signs * values).sum(1).mean()
-        # Match native addition order; this is a diagnostic, not an optimizer loss.
-        total = parts['pairwise']
-        if kind == 'cm':
-            total = total + parts['absolute']
-        total = total + parts['regularization']
+            if native_precision:
+                signs = -ratings.to(device=values.device, dtype=torch.int64)
+                parts['absolute'] = scale * (-F.logsigmoid(signs[rows, high_ids] * high).mean()
+                                             - F.logsigmoid(signs[rows, 1 - high_ids] * low).mean())
+            else:
+                signs = -ratings.to(values.device).float()
+                parts['absolute'] = -scale * F.logsigmoid(signs * values).sum(1).mean()
+        if native_precision:
+            # Preserve the optimized loss graph's creation/reduction order.
+            total = preference_loss(values, ids, kind, ratings, regularization, scale, True)[0]
+        else:
+            total = parts['pairwise']
+            if kind == 'cm':
+                total = total + parts['absolute']
+            total = total + parts['regularization']
         result = {'loss_total': total.detach(), 'score_mean': values.detach().float().mean(),
                   'score_std_population': values.detach().float().std(unbiased=False),
                   'score_positive_fraction': (values.detach() > 0).float().mean(),
@@ -133,8 +166,15 @@ def binary_cost_diagnostics(scores, unsafe):
                for label in (False, True) if (unsafe == label).any()]
     auc = None
     if harmful.numel() and harmless.numel():
-        comparison = harmful[:, None] - harmless[None, :]
-        auc = float(((comparison > 0).float() + 0.5 * (comparison == 0).float()).mean())
+        # Mann–Whitney AUC with tie weight 0.5, without an O(N_unsafe*N_safe)
+        # comparison matrix. Preserve float64 distinctions; BF16/FP16 values
+        # are represented exactly in float32 for portable searchsorted kernels.
+        dtype = torch.float64 if scores.dtype == torch.float64 else torch.float32
+        negative = harmless.detach().flatten().to(dtype).sort().values.contiguous()
+        positive = harmful.detach().flatten().to(dtype).contiguous()
+        lower = torch.searchsorted(negative, positive, right=False)
+        upper = torch.searchsorted(negative, positive, right=True)
+        auc = (lower + upper).sum().item() / (2 * positive.numel() * negative.numel())
     return {'n_responses': scores.numel(), 'n_unsafe': int(unsafe.sum()),
             'safety_label_accuracy_at_zero': float((predicted == unsafe).float().mean()),
             'balanced_safety_label_accuracy_at_zero': sum(recalls) / len(recalls),

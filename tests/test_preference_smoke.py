@@ -77,6 +77,36 @@ class SmokeContracts(unittest.TestCase):
                 torch.testing.assert_close(torch.autograd.grad(loss, current, retain_graph=True)[0],
                                            torch.autograd.grad(actual['loss'], current)[0])
 
+    def test_native_precision_loss_and_gradient_match_upstream_fp32_and_bf16(self):
+        ids = torch.tensor([1, 2, 1])
+        ratings = torch.tensor([[3, -2], [0, 1], [-1, -3]])
+        for dtype in (torch.float32, torch.bfloat16):
+            for kind in ('rm', 'cm'):
+                for scale in (0., 1.):
+                    current = torch.tensor([[.3, -.2], [-.1, .8], [.4, .5]],
+                                           dtype=dtype, requires_grad=True)
+                    loss, _ = self.helpers.preference_loss(current, ids, kind, ratings,
+                                                            native_precision=True, scale=scale)
+                    h = ids - 1 if kind == 'rm' else 2 - ids
+                    rows = torch.arange(3)
+                    end = torch.cat([current[rows, h], current[rows, 1 - h]]).unsqueeze(-1)
+                    trainer = NS(model=lambda **kw: NS(scores=end.unsqueeze(1), end_scores=end),
+                                 infer_batch=lambda b: {}, scale_coeff=scale,
+                                 cfgs=NS(train_cfgs=NS(regularization=.001)))
+                    batch = {'input_ids': torch.ones(6, 2), 'meta_info': {
+                        'is_better_safe': (-ratings[rows, h]).tolist(),
+                        'is_worse_safe': (-ratings[rows, 1 - h]).tolist()}}
+                    fn = source_method(f'safe_rlhf_v/trainers/text_to_text/{kind}.py',
+                                       kind.upper() + 'Trainer', 'loss',
+                                       {'torch': torch, 'F': torch.nn.functional})
+                    actual = fn(trainer, batch)['loss']
+                    torch.testing.assert_close(loss, actual, atol=0, rtol=0)
+                    torch.testing.assert_close(torch.autograd.grad(loss, current, retain_graph=True)[0],
+                                               torch.autograd.grad(actual, current)[0], atol=0, rtol=0)
+        with self.assertRaisesRegex(ValueError, 'finite integers'):
+            self.helpers.preference_loss(torch.zeros(1, 2), [1], 'cm',
+                                          torch.tensor([[.5, 1.]]), native_precision=True)
+
     def test_invalid_preference_contracts_fail(self):
         with self.assertRaises(ValueError):
             self.helpers.preference_loss(torch.zeros(2, 3), [1, 2], 'rm')
@@ -125,6 +155,25 @@ class SmokeContracts(unittest.TestCase):
         self.assertIsNone(one_class['response_safety_auc'])
         with self.assertRaises(ValueError):
             self.helpers.binary_cost_diagnostics(torch.tensor([float('nan')]), torch.tensor([False]))
+
+    def test_rank_auc_matches_pairwise_with_ties_and_scales(self):
+        generator = torch.Generator().manual_seed(42)
+        for dtype in (torch.bfloat16, torch.float32, torch.float64):
+            scores = torch.randint(-3, 4, (80,), generator=generator).to(dtype)
+            unsafe = torch.rand(80, generator=generator) > 0.4
+            comparison = scores[unsafe, None] - scores[~unsafe][None, :]
+            expected = ((comparison > 0).double() + 0.5 * (comparison == 0).double()).mean().item()
+            actual = self.helpers.binary_cost_diagnostics(scores, unsafe)['response_safety_auc']
+            self.assertAlmostEqual(actual, expected, places=14)
+        # Casting these to FP32 would incorrectly turn the positive margin into a tie.
+        self.assertEqual(self.helpers.binary_cost_diagnostics(
+            torch.tensor([1., 1. + 1e-10], dtype=torch.float64),
+            torch.tensor([False, True]))['response_safety_auc'], 1.)
+        # The old pairwise method would allocate 1.6 billion comparisons here.
+        values = torch.arange(1, 40001, dtype=torch.float32)
+        scores = torch.cat([-values, values])
+        unsafe = torch.cat([torch.zeros(40000, dtype=torch.bool), torch.ones(40000, dtype=torch.bool)])
+        self.assertEqual(self.helpers.binary_cost_diagnostics(scores, unsafe)['response_safety_auc'], 1.)
 
     @unittest.skipUnless(importlib.util.find_spec('peft'), 'peft is not installed')
     def test_native_score_lora_training_and_adapter_reload(self):
