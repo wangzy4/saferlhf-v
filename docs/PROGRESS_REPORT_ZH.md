@@ -2,7 +2,7 @@
 
 > 更新：2026-10-10。**旧四策略Luna PK已完成384个计划项（379有效/5失败）；Qwen两项任务按用户要求停止。新算法N32/b8/T4四轮工程验收通过，128候选、32条AI-proxy训练标签，新增真人为0。** 新policy官方64题本地RM和CM均值均上升，不是安全改善证据；新policy未做Luna PK。
 >
-> 最新结果：[Luna完整主账本与榜单](LUNA_AUTHOR_PK64_20261010_ZH.md) · [N32工程验收](ACTIVE_SAFETY_V2_N32_ZH.md) · [sigmoid指标说明](ACTIVE_SAFETY_METRICS_ZH.md)。
+> 最新结果：[Luna完整主账本与榜单](LUNA_AUTHOR_PK64_20261010_ZH.md) · [N32工程验收](ACTIVE_SAFETY_V2_N32_ZH.md) · [sigmoid指标说明](ACTIVE_SAFETY_METRICS_ZH.md) · [综合结果分析与判官新诊断](RESULTS_ANALYSIS_20261010_ZH.md)。
 
 ## 一、研究主线
 
