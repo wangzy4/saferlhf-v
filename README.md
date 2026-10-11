@@ -4,7 +4,7 @@ This fork adds reproduction tooling. See [阶段汇报：主线、进展与完�
 
 Latest verified results: [旧四策略 Luna PK](docs/LUNA_AUTHOR_PK64_20261010_ZH.md) · [Active Safety v2.1 四轮工程验收](docs/ACTIVE_SAFETY_V2_N32_ZH.md) · [RM/CM sigmoid 指标含义](docs/ACTIVE_SAFETY_METRICS_ZH.md) · [复现与自有算法结果分析](docs/RESULTS_ANALYSIS_20261010_ZH.md). Engineering validation is not a claim of safety improvement or human-risk certification.
 
-In progress: [作者规模 RM/CM 训练](docs/AUTHOR_SCALE_RM_CM_ZH.md) — 29,808 train / 590 evaluation pairs, 3 epochs each. CM has begun real full-parameter training; RM is queued. This does not retroactively change the previous policies, scorers or PK results.
+Completed: [作者规模 RM/CM 训练与最终验收](docs/AUTHOR_SCALE_RM_CM_ZH.md) — 29,808 train / 590 evaluation pairs, 3 epochs and 5,589 updates each; full independent reload difference 0. Final RM/CM ranking: 81.86% / 79.49%, CM sign: 86.19%. Newly authorized author-main RL has completed full-data preparation (29,696 prompts / 103,012 eligible PTX rows; 5,568 planned joint updates), and real six-role preflight has started after a preserved launcher failure was fixed. Preflight acceptance, formal RL updates and judge calls are not claimed yet. Previous policies, scorers and PK results remain unchanged.
 
 ## Introduction
 
