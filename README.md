@@ -4,9 +4,11 @@ This fork adds reproduction tooling. See [阶段汇报：主线、进展与完�
 
 Latest verified results: [旧四策略 Luna PK](docs/LUNA_AUTHOR_PK64_20261010_ZH.md) · [Active Safety v2.1 四轮工程验收](docs/ACTIVE_SAFETY_V2_N32_ZH.md) · [RM/CM sigmoid 指标含义](docs/ACTIVE_SAFETY_METRICS_ZH.md) · [复现与自有算法结果分析](docs/RESULTS_ANALYSIS_20261010_ZH.md). Engineering validation is not a claim of safety improvement or human-risk certification.
 
-Completed: [作者规模 RM/CM 训练与最终验收](docs/AUTHOR_SCALE_RM_CM_ZH.md) — 29,808 train / 590 evaluation pairs, 3 epochs and 5,589 updates each; full independent reload difference 0. Final RM/CM ranking: 81.86% / 79.49%, CM sign: 86.19%. Author-main RL has completed full-data preparation (29,696 prompts / 103,012 eligible PTX rows; 5,568 planned joint updates), real six-role EOS/save-restore preflight and longest-sample capacity preflight. At 2026-10-11 14:36 UTC+8, formal from-base RL had completed 32 joint updates and was still running; final generation and new judge calls had not started. Previous policies, scorers and PK results remain unchanged.
+Completed: [作者规模 RM/CM 训练与最终验收](docs/AUTHOR_SCALE_RM_CM_ZH.md) — 29,808 train / 590 evaluation pairs, 3 epochs and 5,589 updates each; full independent reload difference 0. Final RM/CM ranking: 81.86% / 79.49%, CM sign: 86.19%. All three epoch checkpoints and final scorer exports are retained.
 
-**Latest handoff:** [2026-10-11 项目进展、真实预检验收与正式RL交接](docs/HANDOFF_20261011_ZH.md) — verified snapshot, remaining gates, preserved failures, evaluation budget and safety-claim boundaries.
+**Latest progress (2026-10-12):** [当前进展、可用资产与下一步实验](docs/PROGRESS_20261012_ZH.md). The old eight-GPU formal PPO run stopped at update 54 without a recoverable formal checkpoint. Six-GPU immediate full restore passed in v4, but continuation parity failed; v5 passed two-fresh-run repeatability only. Full resume, renewed longest-sample capacity, formal replacement and final evaluation remain unaccepted or unstarted. Authorized cleanup resolved the local-space blocker but removed old pilot/active policy weights and failed resume snapshots; cached answers, labels and outside-target evidence remain. No safety improvement or active-selection advantage is established.
+
+**Historical handoff:** [2026-10-11 14:36 项目交接快照](docs/HANDOFF_20261011_ZH.md) — its running-process and artifact-availability descriptions are superseded by the October 12 progress report.
 
 ## Introduction
 
