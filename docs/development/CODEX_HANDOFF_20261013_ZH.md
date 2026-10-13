@@ -1,6 +1,6 @@
 # Codex 接续交接：Joint-Gradient / LLaVA-1.5-7B（2026-10-13）
 
-> 状态截止：2026-10-13 18:22（UTC+8）。面向负责接续实现、验证和实验执行的 Codex；面向负责人的摘要见 [当前进展](../PROGRESS_20261013_ZH.md)。
+> 状态截止：2026-10-13 22:43（UTC+8）。面向负责接续实现、验证和实验执行的 Codex；面向负责人的摘要见 [当前进展](../PROGRESS_20261013_ZH.md)。
 >
 > **这是公开脱敏交接，不是私有执行包。** 新增 Joint-Gradient 实现、测试、权重清单、原始回答、账本和证据目前位于私有工作区，未随本次文档提交公开。下文文件名是私有证据的定位键，不代表它们存在于本仓库。只有 GitHub checkout 时，先通过操作方批准的私有渠道取得工作区与环境映射；不得猜机器地址、复制凭据、上传私有包或宣称已经复跑。
 
@@ -11,7 +11,9 @@
 - 真实新增 Sol 调用和标签均为 **0**，本轮策略更新、评分器重训均为 **0**。
 - 最新 Python CPU 回归为 **V9 / 129 项通过**；另外 JavaScript 源码隔离测试 **8 项通过**。V6 / 99 项已是历史版本。
 - `training_preflight.py` 的 **CLI 已默认 Sol**；程序调用 `preflight(..., judge='luna')` 保留历史默认，需要显式 `judge='sol'` 才执行新协议检查。
-- 单次发送器和真实账本标签接入代码已实现；不是“尚无 sender”。但它们仍未进行真实付费服务联调。
+- 新增两个真实7B旧缓存流式loss探针，共34+42次backward；参数不变、重复差0，但stream与basis参考差1.489%。**不能把loss近似相同当成生产scalar验收通过。** 详见第5节。
+- 单次发送器和真实账本标签接入代码已实现；不是“尚无 sender”。但它们仍未进行真实付费服务联调；本地主机默认Python缺NumPy/SciPy/Pillow，真实发送运行环境也未验收。
+- 独立Sol draft已经建立；真实C预检exit75、质量CLI因PENDING输入接受证据按预期拒绝，没有创建账本或假quality结果。
 - 旧私有交接中“仅 10 个危险候选”“GPU 全占用而全项目等待”“sender 未实现”“preflight CLI 仍固定 Luna”等，是早期快照，不能当当前状态。
 - 某条路线被门禁阻断时，继续独立、已授权的本地工作；不能因此停止整个项目，也不能绕过该门禁。
 
@@ -65,7 +67,8 @@
 | --- | --- | --- |
 | `joint_gradient.py` | 一般八状态矩、ONS、water-filling、beta/KKT、查询、风险权重与 replay/LURE | CPU 数学与合成验证，不是生产 trainer |
 | `ppo_objective.py` | response-only GAE、reward-only KL、共同 PPO、预冻 auto gate、八状态及式(13) scalar loss | 不以两个标量的无偏性代替真实 PPO 梯度校正 |
-| `training_adapter.py` | 固定参数点逐样本 backward、事件系数、一次有效更新的适配接口 | CPU 等价性不认证 BF16/ZeRO/分布式更新 |
+| `training_adapter.py` | 固定参数点逐样本 backward、事件系数、一次有效更新的适配接口 | CPU等价性不认证BF16/ZeRO；新7B工程测量暴露精度路径差异 |
+| `gpu_streamed_probe_v1.py` / `gpu_streamed_probe_precision_v2.py` | N8/b2合成event、显式basis参考与实际streamed backward的精度诊断 | 34+42次真实backward完成，无optimizer；不是新A/B或生产门禁通过 |
 | `replay_b.py` | 多方法回放、独立 query/evaluation 几何、风险统计与 pool bootstrap | 真实机制 B 未执行 |
 | `scorer_quality.py` | startup-only isotonic 映射、held-out 质量指标 | 当前没有真实标签可拟合 |
 | `local_inference_v1.py` | 固定资产/图片/token 绑定的 prepare / generate / score | 192 新回答与四评分器真实运行完成 |
@@ -91,6 +94,21 @@
 - 四 scorer 的映射只拟合启动64；改变开发标签或分数不能改变映射。CM方向须独立核实，不能看到开发成绩后翻转。
 - 当前质量数值筛查：RM 正相关且 MSE 优于 startup 常数；CM AUC≥0.7、balanced accuracy≥0.6、Brier优于 startup 常数。类别覆盖仍需审阅；数值过线不自动选赢家，也不替代真实梯度 A。
 
+### 新增真实7B精度测量：保持门禁未通过
+
+旧N8缓存、固定两个合成查询event、固定参数/critic/nu/gate；仅测量，不更新模型。参考是 **BF16 basis梯度的CPU FP32加权和**，不是FP32全模型oracle。
+
+| 路径比较 | 相对L2差 |
+| --- | ---: |
+| BF16参数grad中的跨样本stream累积 vs 加权basis参考 | 1.489357474% |
+| 每个sample_loss独立backward后CPU FP32求和 vs 加权basis参考 | 1.439300477% |
+| BF16跨样本stream累积 vs 上述逐样本FP32和 | 0.387747935% |
+| stream重复 | 0 |
+
+标量loss差仅3.39463e-9。V1/V2的stream-to-basis结果一致；两次参数/buffer hash均与原pre-A一致。不能从loss相近推导梯度路径等价，不能把三个范数相加/相减计算原因占比，也不能事后把阈值定为1.5%来放行。
+
+**只改跨样本累积为FP32尚不足以消除与basis参考的差异。** 后续需进一步核查单样本混合加权/反传的精度行为，并在真实A前明确生产数值合同；未逐算子定位，不自动改损失定义或抬高资源上限。仍保留一般八状态，`real_7b_streamed_scalar_equivalence`未验收。
+
 ## 6. Sol 发送、预算与 preflight 接续注意事项
 
 - 固定模型 ID：`gpt-6.1-sol`。旧 Luna protocol JSON、标签、回执和授权原义不变。
@@ -102,7 +120,8 @@
 - 发送前还需当前许可、正确 route/transport hash、exact body allowlist、阶段接受条件；不要因为本地测试全部通过就执行收费 CLI。
 - 四条离线 pilot 采用固定输入顺序前四条；**该位置策略是在生成后才记录**，不能声称生成前已预注册。pilot另占4次，不代替startup主反馈。
 - Sol preflight 新增累计预算证据；C/D 另要求训练前汇报已经完整交付。所有历史 evidence 必须保持 protocol 和共同模型/映射/feature/critic bindings，不给旧 Luna evidence 换标签。
-- **原 `PRETRAIN_PLAN_DRAFT.json` 仍是历史 Luna 草稿，不是可执行 Sol 计划。** 当前尚需独立创建真实 Sol 计划/证据连接，不能改写旧文件冒充过去已经通过。
+- **原 `PRETRAIN_PLAN_DRAFT.json` 仍是历史 Luna 草稿，不是可执行 Sol 计划。** 已另建 `PRETRAIN_PLAN_SOL_DRAFT_V1.json`，保持DRAFT和真实缺项；共同RM/CM尚未选定，不能用现有四组raw分数填已选赢家。C阶段实际预检保持exit75，缺少接受证据的真实quality CLI按预期拒绝。
+- 本地默认Python缺NumPy/SciPy/Pillow；Python发送入口有间接数值和图像校验依赖，Node SDK又绑定本地安装位置。发送前须验证同一获准执行环境的全部依赖/私有配置；不要自动安装、复制凭据或绕过图片校验，也不要把远端mock通过当本地真实发送已就绪。
 
 ## 7. 最新验证与定位键
 
@@ -117,7 +136,10 @@
 | `FOUR_SCORER_RAW_COMPARISON_V1.json` | 同192回答的四流真实raw诊断；`winner_selected=null` |
 | `SOL_UNSENT_MANIFEST_V1.json` | 196条未发送body的冻结绑定，不是发送许可；本地清单不等于完整payload目录 |
 | `LOCAL_GENERATION_SCORING_ARTIFACT_HASHES_V1.json` | 先前39个生成/评分产物绑定；不覆盖之后新写的全部源码 |
-| `CODE_HASHES.json` | 原48项清单属于之前的同步批次；**新增sender/preflight/quality代码后尚需刷新**，不能称当前新增文件已被该旧清单覆盖 |
+| `CODE_HASHES.json` | 旧48项与随后61项版本均保留；当前 **66项代码/计划/文档绑定已跨机校验一致** |
+| `SOL_ENGINEERING_ARTIFACT_HASHES_V1.json` | 15项Sol工程结果绑定已跨机校验 |
+| `STREAMED_PROBE_ARTIFACT_HASHES_V1.json` | 30项新增探针/资源/失败记录等绑定已跨机校验；每次实际运行的6份源码另由CONTRACT校验一致 |
+| 两次探针的 `CONTRACT.json` / `SUMMARY.json` / `DONE` | V1/V2分别34/42 backward、exit0/DONE；无梯度或权重payload，具体私有位置由操作方提供 |
 
 Python测试均 CUDA隐藏、单线程、RSS≤4GiB、180秒内部/195秒外部边界；这些回归 GPU/API/optimizer均0。不要把不同版本测试数相加当“不同用例总数”。
 
@@ -135,15 +157,17 @@ Python测试均 CUDA隐藏、单线程、RSS≤4GiB、180秒内部/195秒外部�
 - 本轮GPU推理：单卡可见、无compute进程、使用显存≤100MiB、主机可用内存≥96GiB；GPU allocator40GiB、CPU RSS64GiB、内部1800秒/外部1830秒。
 - 新生成实测：608.613秒、CPU RSS17.855GiB、GPU allocated13.633GiB。四scorer各约68秒、CPU约5.46GiB、GPU allocated13.474GiB。
 - 旧缓存pre-A实测：934.970秒、CPU RSS52.222GiB、GPU allocated26.476GiB；不是4GiB CPU任务。
-- 推理作业已结束并释放卡/锁，无自动续跑。之后的资源检查只作为历史快照，不证明现在仍有空卡。
+- 新streamed探针V1/V2：334.245秒/477.992秒、CPU RSS39.605/52.178GiB、GPU allocated均26.407GiB；不是4GiB CPU准备任务。
+- 22:42:58确认探针所用主机无compute进程、显存归零且协作锁已释放；无后台续跑。该快照不证明未来仍有空卡。
+- V1第一次结果回传因SCP拒绝尾部`.`失败，原计算已exit0；保留失败，只重取具名产物，没有重跑计算。
 
 ## 8. 按这个顺序接续
 
 ### 可以立即继续的本地工作
 
-1. 取得私有工作区映射后核对实际文件；保留旧 `CODE_HASHES`，补齐新增源码、测试与本轮产物绑定，再跨机校验。当前公开提交仅文档，不假装已发布可执行实现。
-2. 更新私有交接的过时顶部状态；保留原始历史段落。另建 Sol draft/证据连接，保持真正未完成项为 blocked，不填合成 `PASSED`。
-3. 根据现有实现继续输入/来源/许可审计，以及生产scalar、critic/dual/PTX、分布式尺度和恢复准备。任何GPU执行都先检查权限与资源；不得越过正式RL前汇报。
+1. 取得私有工作区映射后核对当前66项清单及结果绑定；旧48/61项和失败快照已保留。后续任何修改再建立新版本、跨机校验，不用旧清单覆盖新源码。本次公开提交仍仅文档。
+2. 使用独立Sol draft继续补真实证据，保持未完成项为blocked，不能填合成`PASSED`。新GPU测量暴露的精度差异也必须保留为未验收项。
+3. 优先继续单样本混合加权/反传的精度定位，同时推进输入/来源/许可审计，以及生产critic/dual/PTX、分布式尺度和恢复准备。任何GPU执行都先检查权限与资源，不越过正式RL前汇报。
 4. 使用既有有界runner重跑涉及修改的测试，保留新版本结果与失败；无需重新生成192回答或重训scorer。
 
 ### 只有相应门禁齐全才执行
