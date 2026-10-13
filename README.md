@@ -2,13 +2,15 @@
 
 This fork adds reproduction tooling. See [阶段汇报：主线、进展与完成情况](docs/PROGRESS_REPORT_ZH.md), [项目目标、方法主线与当前进度总结](docs/PROJECT_SUMMARY_ZH.md), [复现进展与 RM/CM 状态](docs/REPRODUCTION_ZH.md), [推理实验结论](docs/RESULTS_LLAVA_ZH.md), and [RM/CM 真实训练结果与资源](docs/RESULTS_RM_CM_ZH.md). Technical setup, implementation details, and regression checks are kept separately in [开发记录](docs/development/README.md).
 
-Latest verified results: [旧四策略 Luna PK](docs/LUNA_AUTHOR_PK64_20261010_ZH.md) · [Active Safety v2.1 四轮工程验收](docs/ACTIVE_SAFETY_V2_N32_ZH.md) · [RM/CM sigmoid 指标含义](docs/ACTIVE_SAFETY_METRICS_ZH.md) · [复现与自有算法结果分析](docs/RESULTS_ANALYSIS_20261010_ZH.md). Engineering validation is not a claim of safety improvement or human-risk certification.
+Historical evaluation and engineering results: [旧四策略 Luna PK](docs/LUNA_AUTHOR_PK64_20261010_ZH.md) · [Active Safety v2.1 四轮工程验收](docs/ACTIVE_SAFETY_V2_N32_ZH.md) · [RM/CM sigmoid 指标含义](docs/ACTIVE_SAFETY_METRICS_ZH.md) · [复现与自有算法结果分析](docs/RESULTS_ANALYSIS_20261010_ZH.md). Engineering validation is not a claim of safety improvement or human-risk certification.
 
 Completed: [作者规模 RM/CM 训练与最终验收](docs/AUTHOR_SCALE_RM_CM_ZH.md) — 29,808 train / 590 evaluation pairs, 3 epochs and 5,589 updates each; full independent reload difference 0. Final RM/CM ranking: 81.86% / 79.49%, CM sign: 86.19%. All three epoch checkpoints and final scorer exports are retained.
 
-**Latest progress (2026-10-12):** [当前进展、可用资产与下一步实验](docs/PROGRESS_20261012_ZH.md). The old eight-GPU formal PPO run stopped at update 54 without a recoverable formal checkpoint. Six-GPU immediate full restore passed in v4, but continuation parity failed; v5 passed two-fresh-run repeatability only. Full resume, renewed longest-sample capacity, formal replacement and final evaluation remain unaccepted or unstarted. Authorized cleanup resolved the local-space blocker but removed old pilot/active policy weights and failed resume snapshots; cached answers, labels and outside-target evidence remain. No safety improvement or active-selection advantage is established.
+**Latest progress (2026-10-13):** [给项目负责人的进展报告](docs/PROGRESS_20261013_ZH.md) · [给 Codex 的接续交接](docs/development/CODEX_HANDOFF_20261013_ZH.md). Joint-Gradient preparation now includes 192 newly generated multimodal answers and four fixed scorers evaluated twice on the same answers (1,536 scoring forwards, repeat difference 0). Python CPU regression: 129 tests passed; offline JavaScript transport tests: 8 passed. No new Sol calls or labels, no new policy updates, and no real A/B or safety/feedback-efficiency advantage established. Input acceptance, billing evidence and production-training gates remain open. This update publishes sanitized documentation only; the new implementation and raw evidence remain in the private workspace.
 
-**Historical handoff:** [2026-10-11 14:36 项目交接快照](docs/HANDOFF_20261011_ZH.md) — its running-process and artifact-availability descriptions are superseded by the October 12 progress report.
+**Historical progress (2026-10-12):** [资产、恢复与清理状态](docs/PROGRESS_20261012_ZH.md). The old eight-GPU formal PPO run stopped at update 54 without a recoverable formal checkpoint. Six-GPU immediate full restore passed in v4, but continuation parity failed; v5 passed two-fresh-run repeatability only. Full resume and the formal replacement remain unaccepted or unstarted. Authorized cleanup removed old pilot/active policy weights and failed resume snapshots; cached answers, labels and outside-target evidence remain.
+
+**Historical handoff:** [2026-10-11 14:36 项目交接快照](docs/HANDOFF_20261011_ZH.md) — its running-process and artifact-availability descriptions are superseded by the October 12 and October 13 progress reports.
 
 ## Introduction
 
