@@ -1,6 +1,6 @@
 # Joint-Gradient接续：真实一步、checkpoint及失败恢复
 
-> 核对时间：2026-10-16 22:55（UTC+8）。本文件接替[21:06交接](CODEX_HANDOFF_20261016_ZH.md)的当前状态和下一步，不改写历史失败。仅公开脱敏文档；以下私有定位键不表示文件已发布到GitHub，不得据此猜测服务器、复制凭据或公开私有代码/数据/权重。
+> 核对时间：2026-10-16 23:07（UTC+8）。本文件接替[21:06交接](CODEX_HANDOFF_20261016_ZH.md)的当前状态和下一步，不改写历史失败。仅公开脱敏文档；以下私有定位键不表示文件已发布到GitHub，不得据此猜测服务器、复制凭据或公开私有代码/数据/权重。
 
 ## 1. 首先准确报告三个计数
 
@@ -32,6 +32,7 @@
 6. `real-one-pool-update-v3/`：修复launcher环境，使用既有toolkit，训练前执行真实保存/读回测试。从原基线恢复执行后，actor/双critic各一步，退出0，checkpoint提交。
 7. `INDEPENDENT_POSTEXIT_FILE_VERIFY_V1.json`：退出后独立核对36个文件、244,899,215,386字节，全文件hash一致。
 8. `checkpoint-reload-fixed32-v1/`：独立新进程加载三套真实模型，完整模型/buffer hash一致，每个模型对原32条固定回答forward，有限输出、权重不变；新增step/生成/反馈均0。
+9. `checkpoint-cpu-state-restore-v1/`：独立CPU进程恢复三套真实AdamW/scheduler，各295个参数状态逐张量一致，Python/NumPy/Torch CPU RNG恢复一致，无step。CUDA RNG未恢复、cursor未恢复消费，尚非继续执行等价。单步cosine结束后actor LR=0，双critic LR=5e-7；不得静默重置scheduler开展多步训练。
 
 成功更新共32次PPO反传、32次PTX反传、每个critic32次反传。式(15)未裁剪风险估计0.2973857006268199，ν从1变为1.1973857006268198。它不是独立评测危险率。
 
@@ -68,8 +69,8 @@ v3相对v2仅改变恢复预留文件名，launcher补齐既有CUDA路径并强�
 
 当前已越过首次真实一步的工程目标。继续处理checkpoint恢复验收及真实A→留置B→生产验收，不要将旧“零步/待授权/Gram仍在跑”作为现状。
 
-- 已通过：持久文件hash、保存时逐张量读回、新进程模型/buffer重载和固定回答forward。
-- 未通过：完整optimizer/scheduler/RNG/dual/cursor恢复后继续执行等价、分布式strict resume、正式A/B和生产验收。
+- 已通过：持久文件hash、保存时逐张量读回、新进程模型/buffer重载和固定回答forward、三套真实CPU optimizer/scheduler及CPU RNG恢复。
+- 未通过：完整CUDA RNG/dual/cursor恢复后继续执行等价、分布式strict resume、正式A/B和生产验收。
 - 训练输入fixed32诊断不是盲测。后续独立指标、方向和数据须在查看相应结果前固定；不选择性使用标签、不污染留置/最终测试。
 - 原人工视觉/family/权利链/split缺口、RM附加校准失败、共同CM未选、正式C/D范围仍保留。
 - 需要标注时按新授权推进，不以4次上限停工；失败/状态不明请求不得隐式重发。

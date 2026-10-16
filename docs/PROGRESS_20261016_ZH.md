@@ -1,6 +1,6 @@
 # Joint-Gradient 当前进展（2026-10-16）
 
-> 核对截止 **2026-10-16 22:55（UTC+8）**。仅发布脱敏文档，不发布新实现、原始图文、账本或模型权重。当前执行接续见 [真实一步完成后的交接](development/CODEX_HANDOFF_20261016_POST_UPDATE_ZH.md)；[21:06历史交接](development/CODEX_HANDOFF_20261016_ZH.md)保留原始状态截面。
+> 核对截止 **2026-10-16 23:07（UTC+8）**。仅发布脱敏文档，不发布新实现、原始图文、账本或模型权重。当前执行接续见 [真实一步完成后的交接](development/CODEX_HANDOFF_20261016_POST_UPDATE_ZH.md)；[21:06历史交接](development/CODEX_HANDOFF_20261016_ZH.md)保留原始状态截面。
 
 ## 先说实际结果
 
@@ -40,7 +40,11 @@
 - 三套模型分别对原32条固定回答做forward，共96条模型—样本检查，输出有限且模型未变化，无新生成、调用或更新。
 - actor在固定训练回答token上的更新后/冻结FP32概率比率为 **0.950049–1.131335**。这只是训练输入上的变化诊断，不能解释为帮助性或安全性提升，也不能与旧BF16回放概率比率混为一谈。
 
-以上支持checkpoint持久化和真实模型重新加载，**不认证完整optimizer/RNG/cursor恢复后继续训练等价，也不认证分布式strict resume**。
+随后在独立CPU进程恢复了三套真实模型的AdamW和scheduler：每套295个参数状态逐张量完全一致，Python/NumPy/Torch CPU RNG恢复一致，无新增optimizer step。CUDA RNG只确认已保存，尚未执行恢复；dual/cursor元数据绑定通过，但cursor尚未恢复消费。
+
+注意：冻结的单步actor cosine scheduler在这一步后学习率为0，双critic为5e-7。这是当前一步配方的真实终态，不能直接把checkpoint当成已配置好的多步训练起点，更不能悄悄重置scheduler后宣称strict resume。
+
+以上支持checkpoint持久化、真实模型和CPU训练状态恢复，**不认证完整CUDA RNG/cursor恢复后继续训练等价，也不认证分布式strict resume**。
 
 ## 授权和下一步
 
